@@ -2,7 +2,8 @@
 
 The source is adapted from the project's private instruction/tooling environment.
 Private Git history, operational records and account data are not distributed.
-The source's reuse license will be settled before public publication.
+The framework's source and associated documentation are released under the
+[MIT License](LICENSE), copyright 2026 Justin Sublette.
 
 The core Python tools use the standard library. Browser handoff uses Node.js
 built-in modules. Git is an external runtime for optional concurrent development.

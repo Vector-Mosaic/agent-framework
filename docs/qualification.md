@@ -1,12 +1,11 @@
 # Qualification record
 
-Status: standalone preparation and Windows/Linux qualification complete. No
-public release has been made from this tree.
+Status: Windows/Linux qualification completed for the first public release.
 
 Qualification uses the standalone source and synthetic state. Real user accounts,
 global instructions, ongoing research and existing services are outside the test
-targets. The result will identify the Windows and Linux environments actually
-used, the checks completed, any unresolved failures and the source identity.
+targets. This record identifies the Windows and Linux environments actually
+used, the checks completed, support limits and the source identity.
 
 | Area | Current status |
 |---|---|

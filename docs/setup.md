@@ -13,7 +13,14 @@ separate deliberate actions.
 
 ## Start without installing anything
 
-From the repository root:
+Obtain the public source:
+
+```sh
+git clone https://github.com/Vector-Mosaic/agent-framework.git
+cd agent-framework
+```
+
+From that repository root:
 
 ```text
 python scripts/tools/tool_catalog_query.py search "continuity"

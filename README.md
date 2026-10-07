@@ -12,11 +12,25 @@ practical application guides, and the tools that make the methods usable. It is 
 portable adaptation of a working private development environment. Installation
 uses your own paths, accounts and permissions.
 
-**Preparation status:** the standalone source and Windows/Linux qualification
-are complete; publication and the release license remain pending. The
-[qualification record](docs/qualification.md) lists tested environments and
-support limits. No claim of improved model performance follows from the
-framework's design or the toolkit's tests.
+Released under the [MIT License](LICENSE), copyright 2026 Justin Sublette. The
+[qualification record](docs/qualification.md) lists the tested Windows and Linux
+environments and support limits. No claim of improved model performance follows
+from the framework's design or the toolkit's tests.
+
+## Try it
+
+Clone the repository and inspect the available tools:
+
+```sh
+git clone https://github.com/Vector-Mosaic/agent-framework.git
+cd agent-framework
+python scripts/tools/tool_catalog_query.py search "continuity"
+python scripts/tools/codex_instruction_delivery.py preview
+```
+
+Use Python 3.11 or newer (`python3` on Linux if needed). Preview writes nothing.
+Follow [setup](docs/setup.md) to deliberately install the instructions and choose
+your private state locations. The core tools need no build or running service.
 
 ## Start here
 
