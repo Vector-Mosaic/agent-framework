@@ -21,13 +21,16 @@ HELPER = ROOT / "repo_platform/credentials/terminal_remote.py"
 def main():
     if sys.platform != "linux" or not shutil.which("tmux") or not shutil.which("curl"):
         raise SystemExit("Linux, tmux and curl required")
+    shell = shutil.which("sh")
+    if shell is None:
+        raise SystemExit("A POSIX sh is required for the isolated tmux fixture")
     with tempfile.TemporaryDirectory(prefix="agent-framework-tmux-") as folder:
-        environment = dict(os.environ, TMUX_TMPDIR=folder)
+        environment = dict(os.environ, TMUX_TMPDIR=folder, SHELL=shell)
         environment.pop("TMUX", None)
         # TMUX_TMPDIR creates a new default socket namespace; preserve any
         # user's unrelated default tmux server and never connect to it.
         def tmux(*args):
-            result = subprocess.run(["tmux", *args], env=environment, stdout=subprocess.PIPE,
+            result = subprocess.run(["tmux", "-f", "/dev/null", *args], env=environment, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, timeout=8, check=False)
             if result.returncode:
                 raise RuntimeError("isolated tmux command failed")
@@ -41,7 +44,7 @@ def main():
                               "--proxy", "", "--noproxy", "*", "--max-redirs", "0", "--user", "example",
                               "--connect-timeout", "1", "--max-time", "2", "https://example.invalid/data"])
         try:
-            tmux("new-session", "-d", "-s", "handoff", "-x", "140", "-y", "30")
+            tmux("new-session", "-d", "-s", "handoff", "-x", "140", "-y", "30", shell)
             tmux("send-keys", "-t", "handoff:0.0", "-l", command)
             tmux("send-keys", "-t", "handoff:0.0", "Enter")
             identity = None

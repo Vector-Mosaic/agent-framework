@@ -30,10 +30,34 @@ let phase = 'setup';
 let checks = 0;
 const oldState = process.env.AGENT_FRAMEWORK_STATE_HOME;
 const fixtureIdentity = { namespace: randomUUID(), password: randomUUID(), totp: randomUUID() };
+const fixtureFailure = diagnostic => Object.assign(new Error('Private fixture operation failed'), { fixtureDiagnostic: diagnostic });
+const privateWrapper = `import json,sys
+try:
+    exec(compile(sys.stdin.read(), '<private-browser-fixture>', 'exec'))
+except Exception as error:
+    known_types = {'SyntaxError','ImportError','ModuleNotFoundError','OSError','PermissionError','FileNotFoundError','RuntimeError','ValueError','TypeError','CustodyError'}
+    known_codes = {'account_registry_invalid','account_registry_unavailable','custody_path_invalid','custody_permissions_invalid','credential_reference_conflict','credentials_already_provisioned','secret_service_locked','secret_service_dependency_missing','secret_service_unavailable','credential_write_uncertain','custody_binding_mismatch','credential_read_failed'}
+    name=type(error).__name__
+    code=getattr(error,'code',None)
+    print(json.dumps({'type':name if name in known_types else 'UnexpectedError','code':code if code in known_codes else 'fixture_operation_failed'}),file=sys.stderr)
+    sys.exit(1)
+`;
 const privateScript = script => new Promise((resolve, reject) => {
-  const child = spawn(options.python, ['-', options.config], { cwd: root, windowsHide: true, stdio: ['pipe', 'ignore', 'ignore'] });
-  child.once('error', () => reject(new Error('Private fixture operation failed')));
-  child.once('close', code => code === 0 ? resolve() : reject(new Error('Private fixture operation failed')));
+  const child = spawn(options.python, ['-c', privateWrapper, options.config], { cwd: root, windowsHide: true, stdio: ['pipe', 'ignore', 'pipe'] });
+  let diagnostics = '';
+  child.stderr.on('data', chunk => { if (diagnostics.length < 2048) diagnostics += chunk.toString('utf8'); });
+  child.stdin.on('error', () => reject(fixtureFailure({ type: 'ProcessError', code: 'fixture_input_failed' })));
+  child.once('error', () => reject(fixtureFailure({ type: 'ProcessError', code: 'fixture_worker_unavailable' })));
+  child.once('close', code => {
+    if (code === 0) return resolve();
+    let diagnostic;
+    try {
+      const candidate = JSON.parse(diagnostics);
+      if (candidate && Object.keys(candidate).sort().join(',') === 'code,type'
+          && /^[A-Za-z]{1,40}$/.test(candidate.type) && /^[a-z_]{1,80}$/.test(candidate.code)) diagnostic = candidate;
+    } catch { /* Never emit unparsed process output. */ }
+    reject(fixtureFailure(diagnostic ?? { type: 'ProcessError', code: 'fixture_worker_failed' }));
+  });
   child.stdin.end(script);
 });
 // The native-browser contract uses timeoutMs; standard Playwright uses timeout.
@@ -62,8 +86,11 @@ try {
       credentials: { password: fixtureIdentity.password, totp: fixtureIdentity.totp } }],
   }), { flag: 'wx', mode: 0o600 });
   registryCreated = true;
+  phase = 'fixture-custody';
   await privateScript(`from pathlib import Path\nimport sys\nfrom repo_platform.credentials.custody import resolve_selection, store_for, write_payload\ns = resolve_selection('fixture', 'password', 'https://example.test', config=Path(sys.argv[1]))\nwith store_for(s) as store:\n    write_payload(s, '${password}', store)\n`);
+  phase = 'browser-import';
   const engines = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright');
+  phase = 'browser-launch';
   browser = await engines[engineName].launch({ headless: true });
   const page = await browser.newPage();
   await page.route('**/*', route => {
@@ -111,9 +138,9 @@ try {
   await handoff.fillCredential('fixture', 'password', { tab: page, field: browserField(page.locator('#password')) });
   assert.equal(await page.locator('#password').inputValue(), password);
   checks++;
-} catch {
+} catch (error) {
   // Browser exceptions can echo attempted input; emit no raw exception or stack.
-  console.error(JSON.stringify({ status: 'failed', phase, checks }));
+  console.error(JSON.stringify({ status: 'failed', phase, checks, ...(error.fixtureDiagnostic ? { diagnostic: error.fixtureDiagnostic } : {}) }));
   process.exitCode = 1;
 } finally {
   try { await browser?.close(); } catch {
@@ -127,8 +154,8 @@ try {
       // environment. Preserve the registry and state if cleanup is uncertain.
       await privateScript(`from pathlib import Path\nimport json,sys\nfrom repo_platform.credentials.custody import resolve_custody_selection, store_for\nexpected=json.loads('${JSON.stringify(fixtureIdentity)}')\nfor purpose in ('password','totp'):\n    s=resolve_custody_selection('fixture',purpose,config=Path(sys.argv[1]))\n    if s._registry['namespace'] != expected['namespace'] or s.reference != expected[purpose]:\n        raise RuntimeError('Fixture binding changed')\n    with store_for(s) as store:\n        store.delete()\n        if store.read() is not None:\n            raise RuntimeError('Fixture cleanup incomplete')\n`);
       custodyCleaned = true;
-    } catch {
-      console.error(JSON.stringify({ status: 'failed', phase: 'custody-cleanup', checks, fixture_retained: true }));
+    } catch (error) {
+      console.error(JSON.stringify({ status: 'failed', phase: 'custody-cleanup', checks, fixture_retained: true, ...(error.fixtureDiagnostic ? { diagnostic: error.fixtureDiagnostic } : {}) }));
       process.exitCode = 1;
     }
   }
