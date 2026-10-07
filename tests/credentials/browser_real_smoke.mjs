@@ -119,10 +119,12 @@ try {
   await page.goto('https://unapproved.test/outer');
   await assert.rejects(handoff.fillCredential('fixture', 'password', { tab: page, field: browserField(page.frameLocator('#allowed').locator('#password')) }), error => error.code === 'origin_not_allowed');
   checks++;
-  phase = 'totp-pending';
+  phase = 'totp-status';
   await page.goto('https://example.test/login');
   assert.equal((await handoff.totpStatus('fixture', { tab: page })).state, 'not_configured');
+  phase = 'totp-capture';
   assert.equal((await handoff.captureTotpEnrollment('fixture', { tab: page, secretField: browserField(page.locator('#seed')) })).state, 'pending');
+  phase = 'totp-pending-refusal';
   await assert.rejects(handoff.fillCredential('fixture', 'totp_code', { tab: page, field: browserField(page.locator('#otp')) }));
   checks++;
   phase = 'totp-active';
@@ -140,7 +142,8 @@ try {
   checks++;
 } catch (error) {
   // Browser exceptions can echo attempted input; emit no raw exception or stack.
-  console.error(JSON.stringify({ status: 'failed', phase, checks, ...(error.fixtureDiagnostic ? { diagnostic: error.fixtureDiagnostic } : {}) }));
+  const handoffCode = error.name === 'CredentialHandoffError' && /^[a-z_]{1,80}$/.test(error.code) ? error.code : undefined;
+  console.error(JSON.stringify({ status: 'failed', phase, checks, ...(error.fixtureDiagnostic ? { diagnostic: error.fixtureDiagnostic } : {}), ...(handoffCode ? { code: handoffCode } : {}) }));
   process.exitCode = 1;
 } finally {
   try { await browser?.close(); } catch {
