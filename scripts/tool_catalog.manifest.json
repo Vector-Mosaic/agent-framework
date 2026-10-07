@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "kind": "tool_catalog",
+  "name": "agent_framework_tools",
+  "description": "Public framework tools. Discovery is offline; a catalog entry does not authorize effects or establish optional runtime availability.",
+  "tools": [
+    {
+      "id": "tool.dev_helper.tool_catalog_query",
+      "name": "tool_catalog_query",
+      "display_name": "Tool discovery",
+      "description": "Find tools by purpose, inspect exact invocation information and read declared effects without executing the discovered tools.",
+      "category": "dev_helper",
+      "tags": ["discovery", "catalog", "capabilities"],
+      "entrypoints": [{"type": "python", "path": "tools/tool_catalog_query.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/tool_catalog_query.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/tool_catalog_query.py usage --format json"},
+        "search": {"cmd": "python scripts/tools/tool_catalog_query.py search --query \"task continuity\"", "description": "Search purpose and identity metadata."}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/tool_catalog_query.py",
+        "usage_command": "python scripts/tools/tool_catalog_query.py usage",
+        "json_usage_command": "python scripts/tools/tool_catalog_query.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "summary", "list", "search", "show", "commands", "risks"],
+        "selectors": ["--root", "--catalog", "--query", "--tool-id", "--category"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": [], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": true},
+      "verification": {"success": "Exit 0 with selected catalog metadata. Search ranking is lexical, not a proof of fitness.", "failure": "Nonzero with a catalog or selector error; correct the path or use an exact tool ID."},
+      "docs": ["docs/instructions/repo_organization/tool_interfaces.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "tool.ops.codex_thread_sketchpad",
+      "name": "codex_thread_sketchpad",
+      "display_name": "Task sketchpad",
+      "description": "Preserve current task context, accepted decisions and source pointers in a per-task Markdown sketchpad with an explicit pinned registry.",
+      "category": "ops",
+      "tags": ["task", "continuity", "context", "sketchpad", "resume"],
+      "entrypoints": [{"type": "python", "path": "tools/codex_thread_sketchpad.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/codex_thread_sketchpad.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/codex_thread_sketchpad.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/codex_thread_sketchpad.py",
+        "usage_command": "python scripts/tools/codex_thread_sketchpad.py usage",
+        "json_usage_command": "python scripts/tools/codex_thread_sketchpad.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin"],
+        "selectors": ["--thread-id", "--codex-root", "--backup-root"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_sketchpads bodies, metadata and pinned registry"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; activate/write replace selected contents, append adds text"},
+      "verification": {"success": "Read/check returns the selected task state and explicit truncation metadata. Pinning is toolkit-local and does not inject conversation messages.", "failure": "Missing or ambiguous identity/state returns a bounded error. Use the actual task ID; never guess the latest conversation."},
+      "docs": ["docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "tool.ops.codex_thread_todo",
+      "name": "codex_thread_todo",
+      "display_name": "Task to-do",
+      "description": "Keep forward-looking Now, Next and Parked task actions in a per-task Markdown to-do list; completed items leave active state.",
+      "category": "ops",
+      "tags": ["task", "continuity", "todo", "actions", "planning"],
+      "entrypoints": [{"type": "python", "path": "tools/codex_thread_todo.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/codex_thread_todo.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/codex_thread_todo.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/codex_thread_todo.py",
+        "usage_command": "python scripts/tools/codex_thread_todo.py usage",
+        "json_usage_command": "python scripts/tools/codex_thread_todo.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin", "add", "complete", "reopen", "remove", "clear"],
+        "selectors": ["--thread-id", "--codex-root", "--backup-root", "--id", "--section"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_todos bodies, metadata and pinned registry"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; mutation verbs update only the selected task's active actions"},
+      "verification": {"success": "Read/check returns the selected task state. Complete removes the active item; it does not retain a completion transcript.", "failure": "Missing task or item identities return a bounded error; inspect the exact current task before updating it."},
+      "docs": ["docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "tool.ops.codex_instruction_delivery",
+      "name": "codex_instruction_delivery",
+      "display_name": "Instruction setup",
+      "description": "Preview, install, update and remove the framework's managed instruction block while preserving other user guidance.",
+      "category": "ops",
+      "tags": ["instructions", "setup", "install", "AGENTS", "configuration"],
+      "entrypoints": [{"type": "python", "path": "tools/codex_instruction_delivery.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/codex_instruction_delivery.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/codex_instruction_delivery.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/codex_instruction_delivery.py",
+        "usage_command": "python scripts/tools/codex_instruction_delivery.py usage",
+        "json_usage_command": "python scripts/tools/codex_instruction_delivery.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "preview", "install", "update", "remove"],
+        "selectors": ["--source-root", "--repo-root", "--codex-root", "--backup-root"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Selected Codex home AGENTS.md managed block; inspect usage for installation and recovery details"], "modifies_remote": false, "network_access": "none", "danger_level": "medium", "supports_dry_run": true, "idempotent": false, "default_mode": "usage; preview renders without writes; installation requires its explicit verb"},
+      "verification": {"success": "Preview shows the rendered instruction block. Install/update/remove report the selected file and preserve text outside the managed block.", "failure": "A malformed or conflicting managed block is refused; inspect the existing instructions before retrying."},
+      "docs": ["docs/ops/codex_instruction_delivery.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "tool.concurrent_development",
+      "name": "concurrent_development",
+      "display_name": "Concurrent source integration",
+      "description": "Bind an owned Git workspace, prepare selected ready source against a configured shared branch, publish conditionally and refresh while preserving unfinished changes.",
+      "category": "dev_helper",
+      "tags": ["git", "concurrent", "integration", "workspace", "publish"],
+      "entrypoints": [{"type": "python", "path": "tools/concurrent_development.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/concurrent_development.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/concurrent_development.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/concurrent_development.py",
+        "usage_command": "python scripts/tools/concurrent_development.py usage",
+        "json_usage_command": "python scripts/tools/concurrent_development.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "status", "relocate-common-dir", "bind", "release-binding", "prepare-integration", "expose-candidate", "publish", "refresh", "reconcile-refresh", "close", "retract-candidate", "retain-candidate", "release-candidate"],
+        "selectors": ["--root", "--state-root", "--remote", "--shared-branch", "--binding-id", "--owner-id", "--candidate-id"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": true, "writes_paths": ["Selected Git workspace, owned refs and local integration state"], "modifies_remote": true, "network_access": "Preparation fetches the configured remote; explicit expose/publish/close operations may update owned remote refs. Usage is offline.", "danger_level": "high", "supports_dry_run": true, "idempotent": false, "default_mode": "usage; commands require an explicitly bound workspace and command-specific expected identities"},
+      "verification": {"success": "Candidate identity and observed shared parent are explicit; publish advances only the expected shared state. The tool does not create or delete workspaces.", "failure": "Stale generations, conflicts and changed refs are reported; inspect current binding/candidate state before retrying an uncertain publication."},
+      "docs": ["docs/ops/concurrent_development.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "agent_credentials",
+      "name": "agent_credentials",
+      "display_name": "Credential custody and handoff",
+      "description": "Configure user-owned accounts and allowed HTTPS origins, enroll credentials through protected local intake and support private browser field delivery without transcript disclosure.",
+      "category": "ops",
+      "tags": ["credentials", "secrets", "account", "browser", "custody", "handoff", "totp"],
+      "entrypoints": [{"type": "python", "path": "tools/agent_credentials.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/agent_credentials.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/agent_credentials.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/agent_credentials.py",
+        "usage_command": "python scripts/tools/agent_credentials.py usage",
+        "json_usage_command": "python scripts/tools/agent_credentials.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "init", "add", "status", "storage-status", "custody-status", "intake"],
+        "selectors": ["--config", "--account", "--origin", "--credential"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Selected private account registry and protected credential storage; never place these in release source"], "modifies_remote": false, "network_access": "CLI metadata and local custody operations do not submit browser forms. Browser integration can fill an explicitly selected allowed destination.", "danger_level": "high", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; no secret reveal or export command"},
+      "verification": {"success": "Status returns metadata; storage-status probes backend availability; custody-status checks exact credential presence without reading plaintext. Intake writes a previously absent credential without displaying its value; browser delivery returns a bounded result.", "failure": "Missing custody, unsupported runtime, unknown accounts, conflicting enrollment and disallowed destinations fail closed. Correct the configuration or selected destination; do not print secret values to diagnose."},
+      "docs": ["docs/credentials.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "credential_adapters",
+      "name": "credential_adapters",
+      "display_name": "Optional credential adapters",
+      "description": "Use canonical custody for explicit private human clipboard intake/paste or guarded password delivery to an exact downloader prompt on a configured pinned SSH Linux tmux host.",
+      "category": "ops",
+      "tags": ["credentials", "clipboard", "terminal", "handoff", "ssh", "tmux", "optional"],
+      "entrypoints": [{"type": "python", "path": "tools/credential_adapters.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/credential_adapters.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/credential_adapters.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/credential_adapters.py",
+        "usage_command": "python scripts/tools/credential_adapters.py usage",
+        "json_usage_command": "python scripts/tools/credential_adapters.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "clipboard-paste", "clipboard-intake", "terminal-paste"],
+        "selectors": ["--config", "--account", "--origin", "--credential", "--backend", "--targets", "--target", "--pane", "--expected-prompt", "--foreground-process"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Protected credential storage for explicitly authorized absent-only intake"], "modifies_remote": true, "network_access": "Terminal delivery connects only to an explicitly configured pinned SSH target. Usage and clipboard operations do not use the network.", "danger_level": "high", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; clipboard requires an explicit Windows, Wayland or X11 backend; terminal requires exact target, pane and observed prompt", "clipboard_access": "Explicit private human paste/intake only. Headless Linux has no clipboard; native-browser handoff is separate and clipboard-free."},
+      "verification": {"success": "Safe status identifies custody intake or bounded credential delivery; delivery does not prove sign-in or download success.", "failure": "Unknown destination, unverifiable prompt or unavailable desktop backend refuses delivery. Reconcile any uncertain delivery before retrying."},
+      "docs": ["docs/integrations/clipboard.md", "docs/integrations/terminal.md"],
+      "stability": "experimental"
+    }
+  ]
+}

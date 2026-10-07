@@ -1,0 +1,31 @@
+{
+  "schema_version": "protocol_runner.work_plan.v1",
+  "run_title": "Apply the framework to two fictional engineering decisions",
+  "execution_mode": "mixed",
+  "default_contract": {
+    "title": "A decision, its reason, and its limits",
+    "path": "examples/protocol-runner/contract.md"
+  },
+  "steps": [
+    {
+      "step_id": "review_decisions",
+      "step_kind": "parallel_group",
+      "group_id": "decisions",
+      "label": "Two bounded framework applications",
+      "executor": "codex_exec",
+      "contract_ref": "examples/protocol-runner/contract.md",
+      "max_concurrency": 1,
+      "required_worker_capabilities": ["base"],
+      "sealed_output_defaults": {
+        "base_dir": ".protocol-runner/framework-example",
+        "primary_artifact": "review.md"
+      },
+      "items": [
+        {"item_id": "scope", "label": "Preserve the accepted scope", "input_ref": "examples/protocol-runner/inputs/scope.md"},
+        {"item_id": "evidence", "label": "Check the actual uncertain behavior", "input_ref": "examples/protocol-runner/inputs/evidence.md"}
+      ],
+      "on_completed": {"action": "stop"},
+      "on_blocked": {"action": "pause"}
+    }
+  ]
+}

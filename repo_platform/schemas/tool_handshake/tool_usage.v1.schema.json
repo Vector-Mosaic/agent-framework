@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tool Usage v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool_id",
+    "status",
+    "purpose",
+    "entrypoint",
+    "safe_first_calls",
+    "verbs",
+    "selectors",
+    "output_formats",
+    "side_effects",
+    "examples",
+    "docs",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tool_usage.v1"
+    },
+    "tool_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entrypoint": {
+      "type": "string",
+      "minLength": 1
+    },
+    "safe_first_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "cmd"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cmd": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "verbs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "side_effects", "summary"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "side_effects": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "selectors": {
+      "type": "array"
+    },
+    "output_formats": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "side_effects": {
+      "type": "object"
+    },
+    "examples": {
+      "type": "array"
+    },
+    "docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array"
+    },
+    "command_details": {
+      "description": "Optional command-local parser facts and authored semantics. Existing v1 envelopes need not supply this extension.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "syntax": {"type": "string"},
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "aliases": {"type": "array", "items": {"type": "string"}},
+                "required": {"type": "boolean"},
+                "summary": {"type": "string"},
+                "type": {"type": "string"},
+                "choices": {"type": "array"},
+                "default": {},
+                "nargs": {"type": ["string", "integer"]}
+              },
+              "additionalProperties": true
+            }
+          },
+          "constraints": {"type": "array"},
+          "prerequisites": {"type": "array"},
+          "side_effects": {"type": ["string", "object", "array"]},
+          "authority": {"type": ["string", "object", "array"]},
+          "errors": {"type": "array"},
+          "examples": {"type": "array"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
