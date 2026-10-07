@@ -14,6 +14,9 @@ No dependency source or installed binary is vendored here.
 | A Secret Service provider and D-Bus | User-owned Linux protected storage/session | The user's distribution/provider |
 | pytest | Development checks | [pytest](https://github.com/pytest-dev/pytest) |
 | jsonschema | Development schema checks | [jsonschema](https://github.com/python-jsonschema/jsonschema) |
+| Playwright and its browser distribution | Optional real-browser development smoke | [Playwright](https://github.com/microsoft/playwright) |
+| xclip or wl-clipboard | Optional Linux graphical clipboard | The user's distribution |
+| OpenSSH, tmux, curl or GNU Wget | Optional guarded terminal delivery | The user's distribution |
 | Protocol Runner | Optional explicit agent-work orchestration | [Protocol Runner](https://github.com/Vector-Mosaic/protocol-runner) |
 
 Install dependencies through their own distributions; their license files and

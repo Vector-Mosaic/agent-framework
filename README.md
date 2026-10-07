@@ -12,10 +12,11 @@ practical application guides, and the tools that make the methods usable. It is 
 portable adaptation of a working private development environment. Installation
 uses your own paths, accounts and permissions.
 
-**Preparation status:** this source is being prepared for its first public release.
-The [qualification record](docs/qualification.md) distinguishes finished checks
-from work still underway. No claim of improved model performance follows from
-the framework's design or the toolkit's tests.
+**Preparation status:** the standalone source and Windows/Linux qualification
+are complete; publication and the release license remain pending. The
+[qualification record](docs/qualification.md) lists tested environments and
+support limits. No claim of improved model performance follows from the
+framework's design or the toolkit's tests.
 
 ## Start here
 
