@@ -118,5 +118,27 @@ class Contracts(unittest.TestCase):
             self.skipTest('Host cannot create symlink as current principal')
         self.assertCode('custody_path_invalid', lambda: custody.load_registry(link))
 
+    def test_secret_service_provider_schema_preserves_binding_checks(self):
+        from repo_platform.credentials.storage import SecretServiceStore
+        from types import SimpleNamespace
+        expected = {'application': 'agent-framework', 'namespace': 'fixture-namespace',
+                    'account': 'example', 'purpose': 'password', 'reference': 'fixture-reference', 'version': '1'}
+        observed = {**expected, 'xdg:schema': 'org.freedesktop.Secret.Generic'}
+        item = SimpleNamespace(is_locked=lambda: False, get_attributes=lambda: observed)
+        store = object.__new__(SecretServiceStore)
+        store.attributes = expected
+        store.collection = SimpleNamespace(is_locked=lambda: False, search_items=lambda attrs: [item])
+        self.assertIs(store._item(), item)
+        for key in expected:
+            original = observed[key]
+            observed[key] = 'changed'
+            self.assertCode('custody_binding_mismatch', store._item)
+            observed[key] = original
+        observed['unknown-provider-field'] = 'extra'
+        self.assertCode('custody_binding_mismatch', store._item)
+        del observed['unknown-provider-field']
+        store.collection.search_items = lambda attrs: [item, item]
+        self.assertCode('credential_reference_conflict', store._item)
+
 if __name__ == '__main__':
     unittest.main()

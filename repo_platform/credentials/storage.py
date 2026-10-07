@@ -142,7 +142,14 @@ class SecretServiceStore:
                 return None
             if items[0].is_locked():
                 fail('secret_service_locked')
-            if items[0].get_attributes() != self.attributes:
+            observed = items[0].get_attributes()
+            # GNOME Keyring/libsecret may attach xdg:schema after creation.
+            # It describes the provider's item schema, not our credential
+            # binding. Admit only that additional metadata key; every binding
+            # attribute remains exact and any other extra key is rejected.
+            if (set(observed) - set(self.attributes) - {'xdg:schema'}
+                    or any(observed.get(key) != value for key, value in self.attributes.items())
+                    or ('xdg:schema' in observed and not isinstance(observed['xdg:schema'], str))):
                 fail('custody_binding_mismatch')
             return items[0]
         except CustodyError:
