@@ -53,13 +53,22 @@ def _run_tool(
     )
 
 
+def _observed_basis(codex_root: Path, backup_root: Path) -> list[str]:
+    # Serial fixture actions explicitly observe before preparing their next edit.
+    # Stale/competing behavior is tested with retained tokens separately.
+    result = _run_tool(codex_root, backup_root, "status", "--thread-id", THREAD_ID, "--json")
+    assert result.returncode == 0, result.stderr
+    status = json.loads(result.stdout)
+    return ["--expected", status["mutation_token"]] if status["exists"] else ["--expect-absent"]
+
+
 def _activate(codex_root: Path, backup_root: Path) -> None:
     result = _run_tool(
         codex_root,
         backup_root,
         "--json",
         "activate",
-        "--latest-thread",
+        "--latest-thread", "--expect-absent",
     )
     assert result.returncode == 0, result.stderr
 
@@ -102,7 +111,7 @@ def test_complete_returns_receipt_and_removes_item(tmp_path: Path) -> None:
         "add",
         "--latest-thread",
         "--text",
-        "Finish the active correction.",
+        "Finish the active correction.", *_observed_basis(codex_root, backup_root),
     )
     second = _run_tool(
         codex_root,
@@ -113,7 +122,7 @@ def test_complete_returns_receipt_and_removes_item(tmp_path: Path) -> None:
         "--section",
         "next",
         "--text",
-        "Continue with remaining work.",
+        "Continue with remaining work.", *_observed_basis(codex_root, backup_root),
     )
     assert first.returncode == 0, first.stderr
     assert second.returncode == 0, second.stderr
@@ -125,7 +134,7 @@ def test_complete_returns_receipt_and_removes_item(tmp_path: Path) -> None:
         "complete",
         "--latest-thread",
         "--id",
-        "T001",
+        "T001", *_observed_basis(codex_root, backup_root),
     )
     assert completed.returncode == 0, completed.stderr
     payload = json.loads(completed.stdout)
@@ -150,7 +159,7 @@ def test_complete_returns_receipt_and_removes_item(tmp_path: Path) -> None:
         "reopen",
         "--latest-thread",
         "--id",
-        "T001",
+        "T001", *_observed_basis(codex_root, backup_root),
     )
     assert reopen_removed.returncode != 0
     assert "no to-do item T001 exists" in reopen_removed.stderr
@@ -179,6 +188,10 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
 - [ ] T010: Important parked work.
 """
     _todo_path(backup_root).write_text(legacy_body, encoding="utf-8")
+    metadata_path = _todo_path(backup_root).parent / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    metadata.pop("body_revision")  # This fixture represents pre-revision legacy state.
+    metadata_path.write_text(json.dumps(metadata))
 
     checked = _run_tool(
         codex_root,
@@ -206,7 +219,7 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
         "--id",
         "T900",
         "--section",
-        "next",
+        "next", *_observed_basis(codex_root, backup_root),
     )
     assert reopened.returncode == 0, reopened.stderr
     assert json.loads(reopened.stdout)["item"]["section"] == "next"
@@ -222,13 +235,16 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
         f"{stored.rstrip()}\n\n## Done\n\n- [x] T902: Reintroduced legacy history.\n",
         encoding="utf-8",
     )
+    repaired = _run_tool(codex_root, backup_root, "repair", "--thread-id", THREAD_ID,
+                         *_observed_basis(codex_root, backup_root))
+    assert repaired.returncode == 0, repaired.stderr
     appended = _run_tool(
         codex_root,
         backup_root,
         "append",
         "--latest-thread",
         "--text",
-        "Current note.",
+        "Current note.", *_observed_basis(codex_root, backup_root),
     )
     assert appended.returncode == 0, appended.stderr
     appended_body = _todo_path(backup_root).read_text(encoding="utf-8")
@@ -242,7 +258,7 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
         "append",
         "--latest-thread",
         "--text",
-        "## Completed\n\n- [x] T903: Invalid appended history.",
+        "## Completed\n\n- [x] T903: Invalid appended history.", *_observed_basis(codex_root, backup_root),
     )
     assert rejected_note.returncode != 0
     assert "append note contains completed action history" in rejected_note.stderr
@@ -254,7 +270,7 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
         "append",
         "--latest-thread",
         "--text",
-        "- [x] Bare completed note item.",
+        "- [x] Bare completed note item.", *_observed_basis(codex_root, backup_root),
     )
     assert rejected_bare_note.returncode != 0
     assert "append note contains completed action history" in rejected_bare_note.stderr
@@ -268,7 +284,7 @@ def test_legacy_completed_content_is_hidden_and_purged_on_write(tmp_path: Path) 
         "append",
         "--latest-thread",
         "--text",
-        "```markdown\n## Done\n- [x] Illustrative only.\n```",
+        "```markdown\n## Done\n- [x] Illustrative only.\n```", *_observed_basis(codex_root, backup_root),
     )
     assert fenced_note.returncode == 0, fenced_note.stderr
     fenced_body = _todo_path(backup_root).read_text(encoding="utf-8")
@@ -327,7 +343,7 @@ This forward narrative follows the retired completion section.
         backup_root,
         "write",
         "--latest-thread",
-        "--stdin",
+        "--stdin", *_observed_basis(codex_root, backup_root),
         input_text=proposed_body,
     )
     assert written.returncode == 0, written.stderr
@@ -363,7 +379,7 @@ This forward narrative follows the retired completion section.
         "add",
         "--latest-thread",
         "--text",
-        "Generated active item.",
+        "Generated active item.", *_observed_basis(codex_root, backup_root),
     )
     assert added.returncode == 0, added.stderr
     rewritten = _todo_path(backup_root).read_text(encoding="utf-8")

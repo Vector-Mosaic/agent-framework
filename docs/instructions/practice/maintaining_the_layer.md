@@ -11,6 +11,11 @@ definitions and relationships. These guides apply it; conventions and systems
 own their narrower meanings; operations own concrete procedures. A new file or
 delivery route does not acquire authority merely by looking canonical.
 
+Preserve the [adopted operating scope](../framework/README.md#adopted-operating-scope)
+when changing carriers or host bindings. The full framework and practical guides
+continue to apply within that scope; a location change does not create another
+default. Host and system provisions retain their own subjects and conditions.
+
 ## Identify the actual change and its authority
 
 Distinguish changing meaning from correcting its representation or delivery.

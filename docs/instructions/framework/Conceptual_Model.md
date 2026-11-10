@@ -628,6 +628,12 @@ owner. A true residual tie requires material equivalence after all governing
 differences, and then ordinary discretion or a legitimate scoped tie-breaker is
 sufficient.
 
+The owner's [adopted operating scope](README.md#adopted-operating-scope)
+determines where this foundation and its practical guidance govern. Ordinary
+discretion within that scope does not authorize opting out of it. A change to
+adoption requires explicit competent owner direction; a host or storage change
+does not change an individual provision's subject or conditions.
+
 ### Non-goals and anti-goals
 
 A framework non-goal is an outcome, optimization target, scope, or kind of

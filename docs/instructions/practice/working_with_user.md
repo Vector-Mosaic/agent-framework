@@ -171,6 +171,65 @@ realized benefit or broad reliability from a source edit or isolated test. The
 [completion owner](../framework/Conceptual_Model.md#success-and-completion)
 and [verification guide](verifying_work.md) explain those distinctions.
 
+## Scheduled triggers stay paused during active work
+
+Never leave a scheduled trigger enabled to wake an agent that is already working.
+When a chat begins or resumes active work, including work begun by a scheduled
+wakeup, promptly pause every schedule that can trigger that chat or duplicate its
+ongoing work through the actual native scheduling controls. Verify the paused
+state before continuing substantive work. Keeping a schedule active while
+ignoring its messages, changing its prompt or lengthening its interval does not
+fulfill this rule. Discover the actual schedules and targets; do not guess an ID
+or pause unrelated idle monitoring in another chat.
+
+Work through everything currently discussed and authorized in the chat before
+returning to scheduled monitoring. Active work includes investigation,
+implementation, delegated contributions and their integration, repairs,
+verification, documentation, publication and necessary closeout. Finishing one
+subtask, waiting for a tool or worker, leaving a background operation running, or
+reaching a context boundary does not make the whole task monitoring. Continue
+other useful authorized work while a dependency runs. Do not use recurring
+wakeups as a continuation mechanism for unfinished actionable work.
+
+Only when all remaining authorized work has become monitoring external or
+asynchronous progress may the agent re-enable the necessary monitoring schedule.
+First finish the active work and update its continuity and saved monitor
+instructions. Then, immediately before ending the turn, enable only the needed
+schedule and confirm its state. Do not re-enable it early and continue working.
+If new work arrives or is discovered before the turn ends, pause it again.
+A wait for the user's input is not permission to schedule repeated prompts; retain
+the actual input request and any separately authorized monitoring scope.
+
+At each scheduled wakeup, pause the trigger before doing the check. If the check
+reveals actionable work, keep it paused through that work and its follow-through;
+re-enable it only at the next genuine return to monitoring just before the turn
+ends. Already queued or stale wakeups do not override a human request or restart
+completed work: reconcile them with the current state without duplicate checks,
+retries or drift. Do not claim that pausing future triggers cancels a message
+already delivered or queued unless the native control actually establishes that.
+
+This pauses agent wakeups, not the underlying downloads, computations or services.
+Preserve authorized cadence, notification intent, targets and completion/stop
+conditions. A temporary pause for active work does not revive a schedule the user
+separately paused or cancelled. When no eligible monitoring remains, conclude or
+remove the schedule through its native owner instead of rearming it. If the
+required scheduling control is unavailable, report that exact limitation rather
+than claiming the trigger has stopped or inventing a parallel scheduler.
+
+Apply this lifecycle across Codex agents and other scheduled agent work governed
+by this layer, including delegated and resumed work. Record the actual temporary
+pause and resumption condition in existing continuity, and put the entry-pause
+and final-rearm rule in affected saved schedule prompts. Replace contradictory
+instructions such as unconditional "keep ACTIVE" during ongoing work. Preserve
+independent pauses and current authority; historical schedule text cannot reverse
+the user's correction. Deliver changes to known affected active agents and saved
+triggers as well as durable instructions, without restarting unrelated work.
+
+For scheduled monitoring, preserve the user's selected cadence, notification
+behavior and completion conditions. Record changes in the saved monitor and
+continuity so old reporting instructions do not survive a new selection. This
+framework does not impose a notification frequency or create a scheduler.
+
 ## Examples of the distinction in practice
 
 - **"Explain the design; don't change anything."** Recover and explain it,
@@ -179,7 +238,7 @@ and [verification guide](verifying_work.md) explain those distinctions.
 - **"Delete that standard, but keep the tooling."** Trace the standard's
   consumers, preserve actual operating knowledge and remove the authorized
   policy. Do not preserve its mandates in a router, or infer tool deletion.
-- **"Use the accepted plan and execute items 1â€“6."** Carry out those items and
+- **"Use the accepted plan and execute items 1–6."** Carry out those items and
   their inherent supporting work. A separately excluded final activation remains
   excluded even if the implementation is ready for it.
 - **A resumed task asks for an already-authorized account operation.** Recover

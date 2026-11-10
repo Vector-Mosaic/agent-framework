@@ -9,7 +9,9 @@ a scheduler or a replacement reasoning engine. Its complete owners are the
 [conceptual model](instructions/framework/Conceptual_Model.md) and
 [relationship model](instructions/framework/Relationship_Model.md).
 
-The practical guides apply those meanings to actual work. Repository conventions
+The practical guides apply those meanings throughout the owner's
+[adopted operating scope](instructions/framework/README.md#adopted-operating-scope),
+including work across machines and contexts. Repository conventions
 describe how source, documents and tool interfaces are organized. System-specific
 contracts, operating facts and grants retain their own scope. A short instruction
 carrier routes attention to these owners; it does not supersede their meaning.
@@ -52,7 +54,12 @@ registry live under the selected private state root. Here, **pinned** means pinn
 in the toolkit's registry, not in the Codex sidebar. The instructions tell the
 agent to check and read them. The tool does not make an otherwise unavailable
 task identity magically discoverable and does not write Codex's conversation
-database. The owning task writes its body; this is not a shared document editor.
+database. Conditional mutations compare observed body and pin revisions under
+document locks, with separate registry coordination for other tasks. Versioned
+section/cursor reads and explicit repair support bounded recovery after an
+interruption. See the [continuity contract](instructions/agent_workflow/README.md#conditional-updates-and-recovery)
+for the old-record upgrade and output changes. The owning task writes its body;
+this is not a shared document editor.
 
 ## Credentials and execution
 

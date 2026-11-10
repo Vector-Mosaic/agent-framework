@@ -76,9 +76,10 @@ the two files. Do not edit the same home file during installation.
 
 No unattended synchronization or global cleanup service is needed. Refresh
 installed guidance intentionally after source changes and inspect the result.
-The private continuity store is the adopting user's responsibility to back up;
-its legacy option name `--backup-root` selects storage, not a separate automatic
-backup service.
+The legacy option name `--backup-root` selects continuity storage, not a separate
+automatic backup service. Physical disk-failure protection requires the user's
+[explicit selection](../instructions/practice/using_capabilities.md#physical-disk-failure-backups-require-explicit-selection)
+of its scope; installing or using continuity does not select that precaution.
 
 ## What successful installation establishes
 
@@ -88,3 +89,38 @@ instruction discovery. Home and project instructions combine according to that
 client's own supported discovery/precedence rules. An already-running task may
 retain earlier context; no automatic context renewal or native app mutation is
 claimed by this installer.
+
+## Qualify entry and continuation
+
+After an instruction change, host move or relevant client change, inspect the
+actual profile, workspace and native discovery rules. Include personal home
+guidance, the rendered managed block, repository root and applicable nested
+instructions. Overrides, file permissions and working directory can change what
+is selected. Measure the complete assembled content against the effective
+client capacity rather than considering the kernel alone.
+
+Some clients expose a byte limit such as Codex's `project_doc_max_bytes`; that is
+a client-specific setting, not a token budget or a portable recommended value.
+Inspect the installed client's actual behavior. Do not copy another machine's
+limit, silently truncate essential meaning or shorten instructions merely to meet
+an arbitrary quota. This installer does not edit client configuration.
+
+Use a representative fresh task and available native readback to establish which
+sources and complete bodies actually reached the agent. File presence, a loader
+setting and a model's summary are different evidence from an exposed assembly.
+For a continuation claim, check the relevant compaction, resume or delegation
+boundary with the actual selected content. Initial entry alone does not establish
+renewal, and another installation's successful observation does not qualify this
+public installer, every profile or every runtime.
+
+When a body is absent, shadowed or truncated, diagnose the exact source/profile
+and repair within authority. Preserve the current task's work and recover the
+relevant complete owners before dependent reliance. Manual recovery can support
+continued work without proving automatic native restoration. A missing resident
+kernel still needs restoration through the selected native route or the exact
+planned, justified, isolated and temporary exception at the
+[orientation owner](../instructions/framework/Conceptual_Model.md#recoverable-orientation-and-stable-foundations)
+before dependent work. Manual recovery of full owners alone does not satisfy
+automatic kernel delivery. Incorporate source
+at a safe boundary; do not restart unrelated operations, replace private task
+state or add an injection hook to manufacture a delivery claim.

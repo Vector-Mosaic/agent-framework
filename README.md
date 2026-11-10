@@ -51,7 +51,7 @@ cloning the source does not modify your agent configuration.
 
 | Capability | Use |
 |---|---|
-| Sketchpad and to-do | Preserve a task's current understanding and remaining work across continuations. |
+| Sketchpad and to-do | Preserve current understanding and actions with revision-checked updates, section/cursor reads and interruption recovery. |
 | Instruction delivery | Render, preview, install, update and remove the managed instruction section. |
 | Tool discovery | Find the included commands and read their actual interfaces before use. |
 | Credential handoff | Fill an observed browser field from protected, account-bound custody without putting the value in ordinary agent output. |
@@ -63,6 +63,12 @@ needed. Windows and Linux setup, credential backends and optional integrations
 have distinct prerequisites in their operating guides. See
 [credentials](docs/credentials.md), [concurrent development](docs/ops/concurrent_development.md)
 and [Protocol Runner](docs/integrations/protocol-runner.md).
+
+When upgrading an existing installation, update installed guidance deliberately
+and change mutation callers to supply `--expected <observed-token>` or
+`--expect-absent` for creation. Reads now include identity and coverage with the
+body. The [upgrade and recovery contract](docs/instructions/agent_workflow/README.md#conditional-updates-and-recovery)
+explains how to preserve existing records and reconcile conflicts.
 
 This is an independent project, not an OpenAI product. The framework does not
 override the model, client, operating system or organization's governing rules.

@@ -789,6 +789,12 @@ a presumption of permission. There is no universal total value ordering,
 optimizer, priority stack, additional catch-all default, or named
 framework-wide tie-breaker.
 
+The owner's [adopted operating scope](README.md#adopted-operating-scope)
+determines where the framework and practical layer govern. Discretion inside
+that scope does not let an agent abandon the foundation or treat a host move as
+an exemption. Changing adoption's scope requires explicit competent owner
+direction; the conditions of individual provisions remain purpose-relative.
+
 Risk and scarcity inform but do not govern by themselves. Risk is a supported
 possibility of an adverse consequence and its material bearing on the work; it
 is not a score, appetite, authority, value, or generic response system.

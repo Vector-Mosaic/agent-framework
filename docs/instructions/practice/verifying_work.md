@@ -149,27 +149,29 @@ approval for every substantial-operation sequence. Changing scope or effects bey
 appropriate decision. Preserve the existing progress, practical-scale feasibility
 and bounded-loss safeguards below, including for shorter high-consequence work.
 
-### Preserve database recovery coverage
+<a id="preserve-database-recovery-coverage"></a>
+### Preserve needed databases and results
 
-Do not automatically delete a newly built, rebuilt, or converted database if doing
-so would eliminate its recovery coverage and require recreating the expensive
-build or conversion. Without that coverage, deletion requires the user's explicit
-authorization, including after failure or cancellation.
+Preserve useful original databases, source inputs, built results and saved work
+needed to continue the actual task. Failure, cancellation, failed validation or a
+temporary path does not authorize deleting them. Apply the actual lifecycle,
+dependencies and user direction to direct deletion, parent-directory removal and
+automatic/finally-block cleanup. A new representation does not establish that its
+original or every consumer has become disposable.
 
-Recovery coverage does not require an identical or fully current copy: a usable
-earlier snapshot or backup of the new database counts within the accepted
-retention practice. Existing authority for routine backup rotation retains its scope; this rule
-does not require keeping every version or grant new deletion authority.
+This is not a requirement to create or retain a second copy, back up a completed
+database or prove a restore before continuing. The user explicitly selects
+physical disk-failure protection under the
+[backup-scope owner](using_capabilities.md#physical-disk-failure-backups-require-explicit-selection).
+Rebuild cost and general preservation authority do not make that selection.
+The older recovery-coverage anchor remains only to route existing links here.
 
-The original pre-conversion database or source inputs alone do not count as
-recovery coverage for the new build or format.
-
-Apply this to automatic/finally-block cleanup and parent-directory removal as
-well as direct deletion. A temporary path or failed validation does not establish
-disposal authority. Coverage does not itself authorize deletion or certify the
-retained database's correctness, production eligibility or computation
-resumability. The [routine backup replacement owner](using_capabilities.md#routine-backup-replacement)
-continues to govern ordinary authorized rotation.
+Computation checkpoints preserve durable work needed for the demonstrated resume
+and replay bound; they have that purpose even when no disk-failure backup is
+selected. Preservation does not itself establish correctness, production
+eligibility, resumability or deletion authority. Existing explicitly selected
+backup rotation retains its actual scope under the
+[replacement owner](using_capabilities.md#routine-backup-replacement).
 
 ### Establish progress and scale feasibility
 

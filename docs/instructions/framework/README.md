@@ -22,6 +22,27 @@ Practical guidance applies framework concepts; it does not acquire authority to
 silently redefine them. The complete owners remain the basis for resolving a
 material question, rather than a short kernel or convenient example.
 
+## Adopted operating scope
+
+Once adopted, the full framework and practical operating guides form one
+foundation throughout the framework owner's selected scope. This includes work
+across hosts, models, runtimes, working directories, delegated contexts and
+projectless tasks. A change of location or native instruction-discovery boundary
+does not opt work out. Changing that scope requires explicit direction from its
+competent owner; ordinary authorized choices within it remain available.
+
+Each provision retains its own subject, conditions and authority. A host
+restriction still concerns that host; a provider procedure still concerns its
+provider. Repository conventions apply where adopted or otherwise governing.
+Adoption does not require placing every project in this repository or moving
+native application state, credentials or datasets into tracked source.
+
+Home guidance and other carriers deliver the same owners with explicit local
+bindings. Missing or stale delivery is a problem to resolve before dependent
+reliance, not a different operating default. Recover relevant full owners without
+loading the entire corpus on every action. Reading or cloning this repository
+alone does not select adoption, install guidance or grant authority.
+
 ## Purpose
 
 The Agent Framework is intended to help increasingly capable models perform
@@ -97,7 +118,21 @@ authority and protected interests throughout continued, delegated and compacted
 work. A checkpoint or subtask is progress within that outcome, not a new meaning
 of completion. Use native judgment, purpose-relevant grounding and the full
 conceptual owners at `{{REPO_ROOT}}/docs/instructions/framework/README.md`.
-The framework is general; this repository's conventions govern its own work.
+The full framework and practical guides accompany work throughout the owner's
+adopted scope, across hosts, runtimes, delegation and projectless contexts. Each
+host, repository and system rule keeps its actual subject and conditions. The
+complete scope owner is `{{REPO_ROOT}}/docs/instructions/framework/README.md#adopted-operating-scope`.
+
+At the start or resumption of active work, pause and verify native schedules that
+can trigger the chat or duplicate its work. Keep them paused through authorized
+work, delegation, verification and closeout. Re-enable only needed monitoring,
+immediately before ending, preserving independent pauses and underlying jobs.
+The complete owner is `{{REPO_ROOT}}/docs/instructions/practice/working_with_user.md#scheduled-triggers-stay-paused-during-active-work`.
+
+Physical disk-failure backups require the user's explicit selection of their
+scope. Preserve actual needed work and computation checkpoints without making a
+second copy or restore drill an unrequested prerequisite. The complete owner is
+`{{REPO_ROOT}}/docs/instructions/practice/using_capabilities.md#physical-disk-failure-backups-require-explicit-selection`.
 
 For work in the framework repository, the maintained instruction entrypoint is
 `{{REPO_ROOT}}/AGENTS.md`. When starting or resuming work from an older checkout,
@@ -140,6 +175,11 @@ unavailable exact identity or owner precisely. Keep the current baseline in plac
 remove superseded material, replace promoted bodies with durable-source pointers,
 and keep to-do only Now / Next / Parked after updating dependents and removing
 completed entries. These overlays preserve continuity, not parallel authority.
+Use `--expected <mutation_token>` from the observed read/check for updates and
+`--expect-absent` for creation. Reconcile a conflict before preparing a new edit;
+do not automatically reacquire a token and replay stale work. Revision-bound
+section/cursor reads and interrupted-publication repair are owned by
+`{{REPO_ROOT}}/docs/instructions/agent_workflow/README.md#conditional-updates-and-recovery`.
 Use the existing tools directly; no automatic body injection or continuity hook.
 Full lifecycle: `{{REPO_ROOT}}/docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md`.
 

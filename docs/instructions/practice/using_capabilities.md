@@ -205,23 +205,50 @@ every worker the entire remaining budget. A ceiling is not a spending target.
 Reservation, spending, release and replenishment differ; a forgotten commitment
 has not disappeared. No new universal resource ledger follows from this duty.
 
+### Physical disk-failure backups require explicit selection
+
+Within the [adopted operating scope](../framework/README.md#adopted-operating-scope),
+physical disk-failure protection is a precaution the user explicitly selects for
+a project or bounded task. The selection supplies the material, destination,
+retention and operating scope. Agents must not create, schedule, expand, retain
+as a prerequisite or require backups, replicas or restore drills on their own
+judgment. A generic request to finish work, preserve results, ensure safety or
+recover from interruption does not make that selection.
+
+Expensive rebuilds, valuable results, spare capacity, installed backup defaults,
+an existing service or an earlier agent decision do not supply the missing
+authority. Do not turn a backup or restored-copy check into a completion gate for
+work whose selected scope does not include it. This replaces the earlier blanket
+database recovery-coverage requirement.
+
+Ordinary file/Git saving, preserving actual inputs and needed results, safe
+transactional editing and durable computation checkpoints retain their respective
+jobs. They do not require an independent copy against disk failure. Judge a copy
+by its actual purpose: a necessary working representation or bounded operation
+rollback is not automatically a disk-failure backup, and renaming a backup as a
+checkpoint or recovery artifact does not authorize it.
+
+An existing explicitly selected backup remains authorized within its actual
+scope; routine covered operation needs no repeated permission. Later cancellation
+or narrowing must reach its operators and scheduled callers. Apply actual stop
+and cleanup direction while preserving original datasets, results and independent
+dependencies. This selection rule alone grants no deletion authority over
+existing copies or other projects.
+
 ### Routine backup replacement
 
-Where the user has authorized a backup lifecycle with routine retention and
-replacement, reuse that authority for retiring older backups to make room for
-fresh protection. Do not ask for approval for each covered replacement. The
-normal operation should replace older backups at capacity rather than stop for
-a new grant. This guide does not itself establish a retention count, deletion
-permission or authority over a user's backups.
+Where the user has explicitly selected a backup and its continuing retention
+scope, reuse that authority for retiring older generations within that scope.
+Do not ask for approval for each covered replacement. This is authority to
+operate the selected backup, not to add one, enlarge its selection or preserve a
+cancelled precaution. This guide establishes no retention count or deletion grant.
 
-Use the exact bound account, target and backup owner. Retire only the minimum
-oldest set needed, preserve retained recovery protection during replacement,
-and read back the fresh backup with its required retention state. Existing
-provider-managed expiry keeps its own owner; do not add a second retention
-service. Reconcile an uncertain deletion or creation before retrying. A failed
-replacement does not establish fresh protection. Preserve an independently
-required hold or an actual recovery dependency rather than silently treating
-it as disposable.
+Use the exact bound account, target and backup owner. Apply the selected retention
+policy and observe the resulting state. Existing provider-managed expiry keeps
+its own owner; do not add a second retention service. Reconcile uncertain deletion
+or creation before retrying. A failed replacement does not establish fresh
+protection. Preserve actual independent dependencies and holds; a superseded
+backup requirement must not block explicit cleanup direction.
 
 ## Respect runtime lifetime and host limits
 

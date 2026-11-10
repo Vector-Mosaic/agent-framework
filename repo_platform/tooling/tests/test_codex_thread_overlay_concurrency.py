@@ -53,13 +53,12 @@ while not (root/'start').exists():
 for n in range(4):
     tid=f'{worker:08x}-1111-4111-8111-{n:012x}'
     artifact=paths.overlay_root/tid/'sketchpad.md'
-    metadata={'thread_id':tid,'thread_name':f'worker {worker} item {n}',
-              'pinned':False,'sketchpad_path':artifact.as_posix(), 'updated_at':o.utc_now()}
-    o.write_metadata(paths,tid,metadata,path_field='sketchpad_path')
-    target=o.ThreadTarget(tid,'','thread_id',None)
-    o.set_pinned(paths,target,pinned=True,artifact_path=artifact,path_field='sketchpad_path',missing_noun='sketchpad')
+    target=o.ThreadTarget(tid,f'worker {worker} item {n}','thread_id',None)
+    result=o.mutate_overlay(paths,target,artifact_path=artifact,path_field='sketchpad_path',
+        action='create',change=lambda body,meta: 'body',pin=True,expect_absent=True,allow_create=True)
     if n % 2:
-        o.set_pinned(paths,target,pinned=False,artifact_path=artifact,path_field='sketchpad_path',missing_noun='sketchpad')
+        o.mutate_overlay(paths,target,artifact_path=artifact,path_field='sketchpad_path',
+            action='unpin',pin=False,expected=result['mutation']['mutation_token'])
 '''
     processes = [subprocess.Popen(
         [sys.executable, "-c", script, str(tmp_path), str(worker)],

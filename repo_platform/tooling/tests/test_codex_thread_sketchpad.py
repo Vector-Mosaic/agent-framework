@@ -65,6 +65,15 @@ def _run_returned_command(command: list[str], *, cwd: Path = REPO_ROOT) -> subpr
     )
 
 
+def _observed_basis(codex_root: Path, backup_root: Path) -> list[str]:
+    # Serial fixture actions explicitly observe before preparing their next edit.
+    # Stale/competing behavior is tested with retained tokens separately.
+    result = _run_tool(codex_root, backup_root, "status", "--thread-id", THREAD_ID, "--json")
+    assert result.returncode == 0, result.stderr
+    status = json.loads(result.stdout)
+    return ["--expected", status["mutation_token"]] if status["exists"] else ["--expect-absent"]
+
+
 def _activate(codex_root: Path, backup_root: Path, body: str) -> Path:
     activated = _run_tool(
         codex_root,
@@ -74,7 +83,7 @@ def _activate(codex_root: Path, backup_root: Path, body: str) -> Path:
         "--thread-id",
         THREAD_ID,
         "--text",
-        body,
+        body, "--expect-absent",
     )
     assert activated.returncode == 0, activated.stderr
     return backup_root / "thread_sketchpads" / THREAD_ID / "sketchpad.md"
@@ -284,7 +293,7 @@ def test_check_rejects_invalid_windows_and_hides_inactive_content(tmp_path: Path
         "--json",
         "unpin",
         "--thread-id",
-        THREAD_ID,
+        THREAD_ID, *_observed_basis(codex_root, backup_root),
     )
     assert unpinned.returncode == 0, unpinned.stderr
     inactive = _run_tool(

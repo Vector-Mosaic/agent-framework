@@ -79,7 +79,7 @@ The existing mechanisms retain these jobs:
 - Durable docs carry accepted repository intent, target design, current truth,
   standards, policies, contracts, and operating rules under their owning
   document kinds.
-- Git and thread backups preserve historical wording and change history;
+- Git history and any explicitly selected thread history preserve prior wording;
   this does not require a product history service, supported old revisions,
   replay or backward compatibility. Semantic preservation carries accepted
   meaning forward; additional historical behavior needs a concrete task or
@@ -305,7 +305,8 @@ Updated Lock
 
 as simultaneously active bodies.
 
-Thread backups preserve prior versions. The active sketchpad preserves the
+Existing authorized history retains prior versions where available; it is not a
+new backup requirement. The active sketchpad preserves the
 current reasoning state.
 
 ### Baseline Content
@@ -642,7 +643,8 @@ After durable promotion passes:
 6. Report the promoted authority home, semantic disposition, verification, and
    checkpoint.
 
-Git and thread backups preserve prior wording. Active durable docs and the
+Git history and any explicitly selected thread history retain prior wording.
+Active durable docs and the
 active sketchpad do not need to duplicate that history.
 
 If promotion fails, do not partially declare success. Keep the working

@@ -101,6 +101,15 @@ using PowerShell syntax on Windows and POSIX shell syntax on Linux. File install
 prove native instruction loading or model behavior. No hook, automatic message
 injection or Codex database modification is installed.
 
+Within your deliberately adopted scope, the full framework and practical guides
+accompany work across hosts, delegation and projectless contexts. Local host and
+project rules keep their actual conditions. After moving hosts or changing the
+client, inspect the effective instruction sources, combined size and capacity,
+then check relevant continuation or compaction behavior before relying on it.
+The [delivery and renewal procedure](ops/codex_instruction_delivery.md#qualify-entry-and-continuation)
+explains the evidence and recovery boundaries. No fixed host path or client
+capacity value is installed by this guidance.
+
 ## Keep continuity for a real task
 
 Use the exact task UUID supplied by your client. Do not choose the newest task
@@ -112,11 +121,27 @@ python scripts/tools/codex_thread_sketchpad.py check --thread-id 11111111-1111-4
 python scripts/tools/codex_thread_todo.py check --thread-id 11111111-1111-4111-8111-111111111111
 ```
 
-Read existing records. If the body is missing, write the intended body and pin
-it using `write --body-file <file> --pin`, or `write --stdin --pin`. If an existing
-body is unpinned, `pin --thread-id <id>` preserves it. A to-do body should contain
+Read existing records. If both body and metadata are absent, write the intended
+body and pin it using `write --expect-absent --body-file <file> --pin`, or
+`write --expect-absent --stdin --pin`. For existing records, use the observed
+`mutation_token` as `--expected <token>` on every mutation. To pin an existing
+body, `pin --thread-id <id> --expected <token>` preserves its contents. A to-do body should contain
 `## Now`, `## Next` and `## Parked`; completed items belong in the durable result,
 not a running completion diary. `usage --format json` lists the editing commands.
+For example, after observing one exact task with `check --format json`:
+
+```text
+python scripts/tools/codex_thread_sketchpad.py write --thread-id <actual-id> --expected <observed-token> --body-file <file>
+python scripts/tools/codex_thread_sketchpad.py outline --thread-id <actual-id> --format json
+python scripts/tools/codex_thread_sketchpad.py read --thread-id <actual-id> --section-ref <observed-reference> --max-chars 2000 --format json
+```
+
+Retain the actual source revision and use `next_cursor` for subsequent pages.
+Changed sources or stale edit bases are refused. Reconcile them before preparing
+a new action; never automatically refetch a token and replay an old edit. A
+partial publication needs exact readback and, when metadata and pin state are
+known, `repair --expected <observed-token>`. See the full
+[conditional-update and upgrade contract](instructions/agent_workflow/README.md#conditional-updates-and-recovery).
 
 Both tools also accept `CODEX_THREAD_ID` (and compatibility environment names
 `CODEX_THREAD_UUID` and `OPENAI_CODEX_THREAD_ID`). Exact IDs and environment
@@ -127,8 +152,12 @@ necessary for ordinary operation and cannot establish the identity of your task.
 “Pinned” refers to this toolkit's local registry of active continuity records.
 It does not mean a Codex sidebar pin. The records are ordinary private Markdown,
 metadata and registry files under the chosen continuity storage, not part of
-application conversation state. One task owns its body; registry locking protects
-independent task entries, not concurrent edits to the same Markdown body.
+application conversation state. Document locking and revision checks protect
+participating tools from applying stale prepared edits; registry locking also
+protects independent task entries. Reads carry identity and coverage with the
+body and may create lock files. Use JSON's `body` field for a body-only consumer.
+Older copied tools and arbitrary editors do not acquire these locks; finish their
+use before upgrading. This remains task-owned continuity, not a shared editor.
 
 ## Optional capabilities
 

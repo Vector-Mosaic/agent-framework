@@ -1,6 +1,7 @@
 # Qualification record
 
-Status: Windows/Linux qualification completed for the first public release.
+Status: first-release Windows/Linux qualification retained; the November 10
+continuity and instruction-maintenance update is qualified below.
 
 Qualification uses the standalone source and synthetic state. Real user accounts,
 global instructions, ongoing research and existing services are outside the test
@@ -19,9 +20,52 @@ used, the checks completed, support limits and the source identity.
 | Versioned Protocol Runner integration | Example work plan validated using the existing pinned Runner core; all local input references resolve. No live model/Runner mission was launched for this adaptation. |
 | Exact public-source privacy and dependency review | 92 explicitly staged text files reviewed before the first commit; no private ancestry, account/state files or private operational bindings. |
 
-## Environments and source
+## November 10 continuity maintenance
 
-The qualified runtime source is
+The updated public tooling suite passed on both platforms: **74 tests on Linux**
+in 6.02 seconds and **74 tests on Windows** in 13.29 seconds, each with exit zero.
+Tests used synthetic task IDs, profiles, configuration and continuity stores.
+No real home guidance, conversation database, credentials or existing services
+were changed. Independent source and semantic review also passed.
+
+The checked source was immutable Git tree
+`853e510890a491e25825b193515222dcb6e8e26c`. Windows received a Git archive with
+SHA-256 `5b618ca93a22ebb21061c4ad7f48d7227df9e79a2fede0c3e0871bd177961709`,
+verified before extraction. Only this qualification record followed that source.
+The publication retains these tested component tree identities:
+
+| Component | Git tree |
+|---|---|
+| `repo_platform/tooling` including its tests | `3f22a8e2110ce3000cd8cdabb845ccd4553cc02c` |
+| `scripts/tools` including continuity entrypoints | `3c4c7fef16005e083a29f85f4bb4d9a5dcad395a` |
+
+| Environment | Observed runtime |
+|---|---|
+| Linux | x86-64, kernel 7.0.0-42-generic, glibc 2.43, Python 3.12.13, pytest 9.2.0 |
+| Windows | Windows 11 build 26200, Python 3.12.10, pytest 9.0.2 |
+
+Coverage includes revision-conditional body/pin mutations, competing processes,
+absent-only creation, valid legacy records, malformed metadata, initial access
+failures, interruption at body/metadata/listing publication boundaries, final
+readback failure, and repair without replaying an append. Section/cursor checks
+cover duplicate headings, ancestor context, literal containers, Unicode,
+sanitized to-do views and changed source/view/parser refusal. Existing setup,
+configured-root, unindexed exact-ID, selected-interpreter and catalog/help tests
+passed with the new CLI contract. Local Markdown checks found no missing file
+targets or anchors in the changed documentation.
+
+The update documents deliberate adoption across contexts, native schedule pause
+and rearm boundaries, explicit-choice physical disk-failure protection and
+instruction capacity/continuation checks. Tests of this public source do not
+establish every native client's instruction assembly, compaction or delegation
+behavior; those claims still require observation in the selected installation.
+Credential backends and optional integrations are unchanged. Their earlier
+qualified results below retain their original scope; no new real-account,
+browser, clipboard, terminal or Runner mission qualification is claimed.
+
+## First-release environments and source
+
+The first-release qualified runtime source was
 `361099057024cc6851050e6b5a42d375548c23e5`. Its fresh history starts at
 `274359ca512af24f470d1000240a7ec73cdd1258`; no private Git ancestry was imported.
 The final Linux run verified its source bytes against that exact commit archive.

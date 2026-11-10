@@ -146,7 +146,7 @@ def test_cli_continuity_from_unindexed_profile(tmp_path, name):
     env['PYTHONIOENCODING'] = 'utf-8'
     script = ROOT / 'scripts' / 'tools' / f'codex_thread_{name}.py'
     body = '# Current work\n\n## Now\n\n- [ ] Verify unicode: café 東京\n\n## Next\n\n## Parked\n'
-    created = subprocess.run([sys.executable, str(script), 'write', '--thread-id', THREAD, '--stdin', '--pin', '--format', 'json'], input=body, capture_output=True, text=True, encoding='utf-8', env=env, cwd=tmp_path)
+    created = subprocess.run([sys.executable, str(script), 'write', '--thread-id', THREAD, '--stdin', '--pin', '--expect-absent', '--format', 'json'], input=body, capture_output=True, text=True, encoding='utf-8', env=env, cwd=tmp_path)
     assert created.returncode == 0, created.stderr
     checked = subprocess.run([sys.executable, str(script), 'check', '--format', 'json'], capture_output=True, text=True, encoding='utf-8', env=env, cwd=tmp_path)
     assert checked.returncode == 0, checked.stderr

@@ -29,14 +29,15 @@ from repo_platform.tooling.codex_thread_overlay import (  # noqa: E402
     read_body_arg,
     resolve_paths as resolve_overlay_paths,
     resolve_thread_target,
-    set_pinned as set_overlay_pinned,
+    mutate_overlay, mutation_options, add_mutation_options,
+    capture_overlay, overlay_view, navigate_overlay, add_navigation_options,
     overlay_status,
     utc_now,
-    write_metadata,
 )
 from repo_platform.tooling.tool_handshake import (  # noqa: E402
     ToolSelector,
     ToolVerb,
+    argparse_command_details,
     emit_payload,
     normalize_format,
     tool_result_payload,
@@ -65,15 +66,9 @@ def sketchpad_path(paths: ThreadOverlayPaths, thread_id: str) -> Path:
     return body_path(paths, thread_id, BODY_FILENAME)
 
 
-def set_pinned(paths: ThreadOverlayPaths, target: ThreadTarget, pinned: bool) -> dict[str, Any]:
-    return set_overlay_pinned(
-        paths,
-        target,
-        pinned=pinned,
-        artifact_path=sketchpad_path(paths, target.thread_id),
-        path_field=PATH_FIELD,
-        missing_noun="sketchpad",
-    )
+def set_pinned(paths: ThreadOverlayPaths, target: ThreadTarget, pinned: bool, **precondition: Any) -> dict[str, Any]:
+    return mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                          path_field=PATH_FIELD, action="pin" if pinned else "unpin", pin=pinned, **precondition)
 
 
 def render_template(args: argparse.Namespace, target: ThreadTarget) -> str:
@@ -121,57 +116,20 @@ def render_template(args: argparse.Namespace, target: ThreadTarget) -> str:
     )
 
 
-def create_or_write_sketchpad(
-    paths: ThreadOverlayPaths,
-    target: ThreadTarget,
-    body: str,
-    *,
-    pin: bool,
-    action: str,
-) -> dict[str, Any]:
-    now = utc_now()
-    path = sketchpad_path(paths, target.thread_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    old_metadata = load_metadata(paths, target.thread_id)
-    path.write_text(body.strip() + "\n", encoding="utf-8")
-    metadata = {
-        "version": 1,
-        "thread_id": target.thread_id,
-        "thread_name": target.thread_name or old_metadata.get("thread_name", ""),
-        "created_at": old_metadata.get("created_at") or now,
-        "updated_at": now,
-        "pinned": bool(old_metadata.get("pinned")) or pin,
-        "last_action": action,
-        PATH_FIELD: path.as_posix(),
-        "matched_by": target.matched_by,
-    }
-    write_metadata(paths, target.thread_id, metadata, path_field=PATH_FIELD)
-    if pin:
-        metadata = set_pinned(paths, target, True)
-    return metadata
+def create_or_write_sketchpad(paths: ThreadOverlayPaths, target: ThreadTarget, body: str, *,
+                              pin: bool, action: str, **precondition: Any) -> dict[str, Any]:
+    prepared = body.strip() + "\n"
+    return mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                          path_field=PATH_FIELD, action=action, change=lambda body, metadata: prepared, allow_create=True,
+                          pin=True if pin else None, **precondition)
 
 
-def append_note(paths: ThreadOverlayPaths, target: ThreadTarget, note: str, *, pin: bool) -> dict[str, Any]:
-    path = sketchpad_path(paths, target.thread_id)
-    if not path.exists():
-        raise SketchpadError(f"no sketchpad exists for thread {target.thread_id}")
-    now = utc_now()
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(f"\n## Note {now}\n\n{note.strip()}\n")
-    metadata = load_metadata(paths, target.thread_id)
-    metadata.update(
-        {
-            "thread_id": target.thread_id,
-            "thread_name": target.thread_name or metadata.get("thread_name", ""),
-            "updated_at": now,
-            "last_action": "append",
-            PATH_FIELD: path.as_posix(),
-        }
-    )
-    write_metadata(paths, target.thread_id, metadata, path_field=PATH_FIELD)
-    if pin:
-        metadata = set_pinned(paths, target, True)
-    return metadata
+def append_note(paths: ThreadOverlayPaths, target: ThreadTarget, note: str, *, pin: bool, **precondition: Any) -> dict[str, Any]:
+    def change(body: str, metadata: dict[str, Any]) -> str:
+        return body + f"\n## Note {utc_now()}\n\n{note.strip()}\n"
+    return mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                          path_field=PATH_FIELD, action="append", change=change,
+                          pin=True if pin else None, **precondition)
 
 
 def sketchpad_status(paths: ThreadOverlayPaths, target: ThreadTarget) -> dict[str, Any]:
@@ -198,15 +156,17 @@ def usage_payload() -> dict[str, Any]:
             {"label": "check-current-thread", "cmd": f"{ENTRYPOINT} check"},
         ],
         verbs=[
+            ToolVerb("outline", "local coordination lock only", "Read heading hierarchy and exact version-bound references."),
+            ToolVerb("repair", "local metadata and derived listing writes", "Reconcile observed body revision/listings without replaying an edit or inventing pin state."),
             ToolVerb("usage", "none", "Return this usage contract."),
             ToolVerb("activate", "writes local sketchpad state", "Create or replace a thread sketchpad and pin it by default."),
             ToolVerb("write", "writes local sketchpad state", "Replace an existing thread sketchpad body."),
             ToolVerb("append", "writes local sketchpad state", "Append a timestamped note to a thread sketchpad."),
-            ToolVerb("status", "none", "Show one sketchpad status or list pinned sketchpads."),
-            ToolVerb("read", "none", "Read a sketchpad body."),
+            ToolVerb("status", "local coordination lock only", "Show one sketchpad status or list pinned sketchpads."),
+            ToolVerb("read", "local coordination lock only", "Read a sketchpad body."),
             ToolVerb(
                 "check",
-                "none",
+                "local coordination lock only",
                 "Report a bounded pinned sketchpad excerpt with explicit window and truncation metadata.",
             ),
             ToolVerb("pin", "writes local sketchpad state", "Pin an existing sketchpad."),
@@ -218,7 +178,19 @@ def usage_payload() -> dict[str, Any]:
             ToolSelector("--latest-thread", False, "Fallback selector for the newest indexed thread."),
             ToolSelector("--codex-root", False, "Override Codex home (CODEX_HOME, then ~/.codex)."),
             ToolSelector("--backup-root", False, "Override continuity storage (AGENT_FRAMEWORK_STATE_HOME or platform user state)."),
+            ToolSelector("--expected", False, "Mutation token from actual observed body/pin state; required for existing documents."),
+            ToolSelector("--expect-absent", False, "Explicit creation precondition; both body and metadata must be absent."),
+            ToolSelector("--section-ref", False, "Exact occurrence at the captured source/view revision from outline."),
+            ToolSelector("--cursor", False, "Continue the same selection/view/revision returned by read."),
         ],
+        command_details=argparse_command_details(build_parser()),
+        extra={"mutation_contract": {
+            "precondition": "Every mutation supplies --expected from the observed state, or --expect-absent for creation. Never silently reacquire and replay an old edit.",
+            "basis": "Body-only edits compare raw stored bytes and preserve current pin state. Explicit pin changes compare pin state; compound changes compare both.",
+            "publication": "Body, metadata and derived listings publish separately under document then registry OS locks. Partial errors identify committed/uncertain stages; read back then repair, never replay an append blindly.",
+            "coordination_scope": "Participating current tools only; old copied scripts and arbitrary editors do not acquire these locks.",
+            "read_effects": "Read/check/status/outline may create a local coordination lock file; they do not alter body or metadata.",
+            "read_coverage": "Text and JSON retain source/view identity, selection and delivered range. Cursors reject changed bytes or transformations; final page alone is not whole-selection receipt."}},
         output_formats=["text", "json"],
         side_effects={
             "writes_repo": False,
@@ -231,7 +203,7 @@ def usage_payload() -> dict[str, Any]:
         examples=[
             {"label": "Usage JSON", "cmd": f"{ENTRYPOINT} usage --format json"},
             {"label": "Check current pinned sketchpad", "cmd": f"{ENTRYPOINT} check"},
-            {"label": "Append note", "cmd": f"{ENTRYPOINT} append --text \"Updated intent lens.\""},
+            {"label": "Append note", "cmd": f"{ENTRYPOINT} append --expected <observed-token> --text \"Updated intent lens.\""},
         ],
         docs=["AGENTS.md"],
         errors=[
@@ -258,8 +230,8 @@ def cmd_activate(args: argparse.Namespace) -> int:
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
     body = read_body_arg(args) or render_template(args, target)
-    metadata = create_or_write_sketchpad(paths, target, body, pin=not args.no_pin, action="activate")
-    emit_kv({"action": "activate", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = create_or_write_sketchpad(paths, target, body, pin=not args.no_pin, action="activate", **mutation_options(args))
+    emit_kv({"action": "activate", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -270,8 +242,8 @@ def cmd_write(args: argparse.Namespace) -> int:
     body = read_body_arg(args)
     if body is None:
         raise SketchpadError("write requires --text, --body-file, or --stdin")
-    metadata = create_or_write_sketchpad(paths, target, body, pin=args.pin, action="write")
-    emit_kv({"action": "write", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = create_or_write_sketchpad(paths, target, body, pin=args.pin, action="write", **mutation_options(args))
+    emit_kv({"action": "write", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -282,8 +254,8 @@ def cmd_append(args: argparse.Namespace) -> int:
     note = read_body_arg(args)
     if note is None:
         raise SketchpadError("append requires --text, --body-file, or --stdin")
-    metadata = append_note(paths, target, note, pin=args.pin)
-    emit_kv({"action": "append", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = append_note(paths, target, note, pin=args.pin, **mutation_options(args))
+    emit_kv({"action": "append", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -301,18 +273,19 @@ def cmd_read(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    status = sketchpad_status(paths, target)
-    if args.pinned_only and not status["pinned"]:
-        emit_kv({"action": "read", "active": False, **status}, as_json=args.json)
-        return 0
-    path = Path(status[PATH_FIELD])
-    if not path.exists():
-        raise SketchpadError(f"no sketchpad exists for thread {target.thread_id}")
-    body = path.read_text(encoding="utf-8")
-    if args.json:
-        emit_kv({"action": "read", "active": True, **status, "body": body}, as_json=True)
-    else:
-        print(body, end="" if body.endswith("\n") else "\n")
+    payload = navigate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                               path_field=PATH_FIELD, transform=lambda body: body, view="utf8-newlines-v1", args=args)
+    emit_kv({"action": args.command, **payload}, as_json=args.json)
+    return 0
+
+
+def cmd_repair(args: argparse.Namespace) -> int:
+    paths = resolve_paths(args)
+    target = resolve_thread_target(args, paths, required=True)
+    assert target is not None
+    result = mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                            path_field=PATH_FIELD, action="repair", repair=True, **mutation_options(args))
+    emit_kv({"action": "repair", **result}, as_json=args.json)
     return 0
 
 
@@ -320,11 +293,14 @@ def cmd_check(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    status = sketchpad_status(paths, target)
+    captured = capture_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id), path_field=PATH_FIELD)
+    status = overlay_status(paths, target, artifact_path=sketchpad_path(paths, target.thread_id), path_field=PATH_FIELD, captured=captured)
+    if args.expected_source is not None and args.expected_source != captured["body_revision"]:
+        raise SketchpadError("Stored source changed; reacquire with read or outline.", code="stale_selection")
     active = bool(status["exists"] and status["pinned"])
     body = ""
     if active:
-        body = Path(status[PATH_FIELD]).read_text(encoding="utf-8")
+        body, status["view"] = overlay_view(captured, lambda body: body, "utf8-newlines-v1")
 
     wants_json = (
         normalize_format(
@@ -345,6 +321,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         backup_root=paths.backup_root,
         noun="sketchpad",
         as_json=wants_json,
+        source_revision=captured["body_revision"],
     )
 
     payload = {
@@ -362,8 +339,8 @@ def cmd_pin(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    metadata = set_pinned(paths, target, True)
-    emit_kv({"action": "pin", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = set_pinned(paths, target, True, **mutation_options(args))
+    emit_kv({"action": "pin", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -371,8 +348,8 @@ def cmd_unpin(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    metadata = set_pinned(paths, target, False)
-    emit_kv({"action": "unpin", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = set_pinned(paths, target, False, **mutation_options(args))
+    emit_kv({"action": "unpin", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -429,6 +406,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(read, defaults=False)
     add_selector(read)
     read.add_argument("--pinned-only", action="store_true", help="Return inactive status instead of body when unpinned.")
+    add_navigation_options(read)
     read.set_defaults(func=cmd_read)
 
     check = subparsers.add_parser("check", help="Agent hook: report/read the pinned sketchpad for a selected thread.")
@@ -452,6 +430,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Return the final --max-chars Unicode characters.",
     )
+    check.add_argument("--expected-source", help="Require the exact stored-byte revision returned by an earlier check.")
     check.set_defaults(func=cmd_check)
 
     pin = subparsers.add_parser("pin", help="Pin an existing sketchpad.")
@@ -464,12 +443,23 @@ def build_parser() -> argparse.ArgumentParser:
     add_selector(unpin)
     unpin.set_defaults(func=cmd_unpin)
 
+    outline = subparsers.add_parser("outline", help="List exact revision-bound section occurrences and preamble.")
+    add_common(outline, defaults=False)
+    add_selector(outline)
+    outline.set_defaults(func=cmd_read)
+    repair = subparsers.add_parser("repair", help="Reconcile recorded body revision and derived listings, preserving known pin state; never replay an edit.")
+    add_common(repair, defaults=False)
+    add_selector(repair)
+    repair.set_defaults(func=cmd_repair)
+    for command in (activate, write, append, pin, unpin, repair):
+        add_mutation_options(command)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    args.json = normalize_format(args.format, json_alias=args.json) == "json"
     try:
         return int(args.func(args))
     except SketchpadError as exc:
@@ -483,7 +473,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     summary=str(exc),
                     errors=[
                         {
-                            "code": "sketchpad_error",
+                            "code": exc.code,
+                            "details": exc.details,
                             "message": str(exc),
                             "retry_hint": f"Run `{ENTRYPOINT} usage`.",
                         }
@@ -493,7 +484,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 stream=sys.stderr,
             )
         else:
-            print(f"ERROR: {exc}", file=sys.stderr)
+            print(f"ERROR [{exc.code}]: {exc}", file=sys.stderr)
+            if exc.details:
+                import json
+                print("details: " + json.dumps(exc.details, sort_keys=True), file=sys.stderr)
             print(f"Retry hint: run `{ENTRYPOINT} usage`.", file=sys.stderr)
         return 1
 

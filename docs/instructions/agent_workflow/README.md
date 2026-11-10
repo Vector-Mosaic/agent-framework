@@ -59,6 +59,56 @@ file-body injection, parallel memory store or completion ledger. Home guidance
 uses the installing user's explicit workspace and storage paths; use the tools'
 `--codex-root` and `--backup-root` selectors.
 
+## Conditional updates and recovery
+
+Use the current tools together for a given continuity store. Every mutation
+requires either `--expected <mutation_token>` from an actual read/check/status of
+the exact document or `--expect-absent` for creation. Creation requires both body
+and metadata to be absent. The token binds the store, Codex profile, task and
+document; it is an observation precondition, not an access credential.
+
+Body-only edits compare the raw stored-body revision and preserve current pin
+state. Explicit pin changes compare the observed pin state; a compound body/pin
+change compares both. A stale relevant basis is refused without the requested
+change. Reread and reconcile the intended edit with the newer state before
+preparing a replacement. Do not automatically fetch a fresh token and replay an
+old append, item operation or replacement.
+
+`outline` identifies exact ATX heading occurrences, their hierarchy and the
+preamble at one source/view/parser revision. `read --section-ref <reference>`
+includes preamble and ancestor introductions, or returns their references with
+`--context references`. `--max-chars` bounds a page; `--cursor <next_cursor>`
+continues that same selection. Cursors and `--expected-source` reject changed
+stored bytes, even if a to-do's sanitized forward-looking view looks unchanged.
+The returned `parser_support` describes the supported Markdown subset; it is not
+a full Markdown renderer. Setext headings remain ordinary content.
+
+Text and JSON reads carry source/view identity and coverage alongside the body.
+Consumers that previously expected plain body-only `read` output must use the
+JSON `body` field. A final page is not proof that earlier pages were received;
+retain the revision and delivered ranges when complete coverage matters.
+
+Document OS locks serialize participating writers, and a registry OS lock
+protects different task entries. Reads may create a coordination lock file but
+do not change body or metadata. Arbitrary editors and old copied tools do not
+participate in this coordination; finish their use before upgrading a store.
+This is not a collaborative document editor or an automatic merge service.
+
+Body, metadata and derived listings publish as separate atomic replacements.
+An interrupted mutation reports reached or uncertain boundaries in its error.
+Read back the exact document and its `consistency`; do not replay an append just
+because the command failed. With valid metadata and known pin state, use
+`repair --expected <observed-token>` to reconcile its recorded body revision and
+derived listings without changing the body or inventing pin state. Missing or
+invalid metadata needs explicit reconciliation of the preserved body and actual
+pin selection; `repair` and `--expect-absent` cannot silently adopt that state.
+
+Valid legacy body-plus-metadata records remain readable. They acquire revisions
+on the next conditional mutation without rewriting unrelated tasks or migrating
+the store. Stop older mutation scripts, update their arguments and installed
+guidance, then continue with the same configured roots and actual task IDs.
+Moving roots does not move records or change their ownership automatically.
+
 ## Locks, promotion and authority
 
 `lock`, `locked`, `lock this`, `locked as a baseline` and `accepted baseline`

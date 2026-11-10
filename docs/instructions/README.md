@@ -3,7 +3,9 @@
 This index routes the complete framework, practical guidance, repository
 conventions and specialized methods. Their scopes differ. The framework applies
 to human-agent work generally; repository conventions govern this toolkit and
-explain their conditional use in adopting projects.
+explain their conditional use in adopting projects. The full framework and
+practical guides accompany the owner's [adopted operating scope](framework/README.md#adopted-operating-scope)
+across hosts and contexts; each provision keeps its actual conditions.
 A document's location does not extend its permission or redefine another owner's
 meaning. [Repository AGENTS](../../AGENTS.md) carries immediate conduct and
 applicability triggers; [native delivery](../ops/codex_instruction_delivery.md)

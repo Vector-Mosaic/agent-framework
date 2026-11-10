@@ -31,14 +31,15 @@ from repo_platform.tooling.codex_thread_overlay import (  # noqa: E402
     read_body_arg,
     resolve_paths as resolve_overlay_paths,
     resolve_thread_target,
-    set_pinned as set_overlay_pinned,
+    mutate_overlay, mutation_options, add_mutation_options,
+    capture_overlay, overlay_view, navigate_overlay, add_navigation_options,
     overlay_status,
     utc_now,
-    write_metadata,
 )
 from repo_platform.tooling.tool_handshake import (  # noqa: E402
     ToolSelector,
     ToolVerb,
+    argparse_command_details,
     emit_payload,
     normalize_format,
     tool_result_payload,
@@ -128,15 +129,9 @@ def todo_path(paths: ThreadOverlayPaths, thread_id: str) -> Path:
     return body_path(paths, thread_id, BODY_FILENAME)
 
 
-def set_pinned(paths: ThreadOverlayPaths, target: ThreadTarget, pinned: bool) -> dict[str, Any]:
-    return set_overlay_pinned(
-        paths,
-        target,
-        pinned=pinned,
-        artifact_path=todo_path(paths, target.thread_id),
-        path_field=PATH_FIELD,
-        missing_noun="thread to-do list",
-    )
+def set_pinned(paths: ThreadOverlayPaths, target: ThreadTarget, pinned: bool, **precondition: Any) -> dict[str, Any]:
+    return mutate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id),
+                          path_field=PATH_FIELD, action="pin" if pinned else "unpin", pin=pinned, **precondition)
 
 
 def section_key(raw_title: str) -> str:
@@ -520,112 +515,23 @@ def default_document(title: str = "Thread To-Do List") -> TodoDocument:
     )
 
 
-def load_todo_document(paths: ThreadOverlayPaths, target: ThreadTarget) -> TodoDocument:
-    path = todo_path(paths, target.thread_id)
-    if not path.exists():
-        return default_document()
-    return parse_todo_body(path.read_text(encoding="utf-8"))
+def create_or_write_todo(paths: ThreadOverlayPaths, target: ThreadTarget, body: str, *,
+                         pin: bool, action: str, **precondition: Any) -> dict[str, Any]:
+    prepared = sanitize_forward_looking_body(body)
+    return mutate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id), path_field=PATH_FIELD,
+                          action=action, change=lambda body, metadata: prepared, allow_create=True, pin=True if pin else None, **precondition)
 
 
-def write_todo_document(
-    paths: ThreadOverlayPaths,
-    target: ThreadTarget,
-    document: TodoDocument,
-    *,
-    pin: bool,
-    action: str,
-    preserve_existing_pin: bool = True,
-) -> dict[str, Any]:
-    now = utc_now()
-    path = todo_path(paths, target.thread_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    old_metadata = load_metadata(paths, target.thread_id)
-    created_at = old_metadata.get("created_at") or now
-    body = render_todo_body(
-        document,
-        target,
-        created_at=str(created_at),
-        updated_at=now,
-    )
-    path.write_text(body.strip() + "\n", encoding="utf-8")
-    metadata = {
-        "version": 1,
-        "thread_id": target.thread_id,
-        "thread_name": target.thread_name or old_metadata.get("thread_name", ""),
-        "created_at": created_at,
-        "updated_at": now,
-        "pinned": (bool(old_metadata.get("pinned")) if preserve_existing_pin else False) or pin,
-        "last_action": action,
-        PATH_FIELD: path.as_posix(),
-        "matched_by": target.matched_by,
-    }
-    write_metadata(paths, target.thread_id, metadata, path_field=PATH_FIELD)
-    if pin:
-        metadata = set_pinned(paths, target, True)
-    return metadata
-
-
-def create_or_write_todo(
-    paths: ThreadOverlayPaths,
-    target: ThreadTarget,
-    body: str,
-    *,
-    pin: bool,
-    action: str,
-) -> dict[str, Any]:
-    now = utc_now()
-    path = todo_path(paths, target.thread_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    old_metadata = load_metadata(paths, target.thread_id)
-    path.write_text(sanitize_forward_looking_body(body), encoding="utf-8")
-    metadata = {
-        "version": 1,
-        "thread_id": target.thread_id,
-        "thread_name": target.thread_name or old_metadata.get("thread_name", ""),
-        "created_at": old_metadata.get("created_at") or now,
-        "updated_at": now,
-        "pinned": bool(old_metadata.get("pinned")) or pin,
-        "last_action": action,
-        PATH_FIELD: path.as_posix(),
-        "matched_by": target.matched_by,
-    }
-    write_metadata(paths, target.thread_id, metadata, path_field=PATH_FIELD)
-    if pin:
-        metadata = set_pinned(paths, target, True)
-    return metadata
-
-
-def append_note(paths: ThreadOverlayPaths, target: ThreadTarget, note: str, *, pin: bool) -> dict[str, Any]:
-    path = todo_path(paths, target.thread_id)
-    if not path.exists():
-        raise TodoError(f"no thread to-do list exists for thread {target.thread_id}")
-    now = utc_now()
+def append_note(paths: ThreadOverlayPaths, target: ThreadTarget, note: str, *, pin: bool, **precondition: Any) -> dict[str, Any]:
     note_text = note.strip()
     if sanitize_forward_looking_body(note_text).strip() != note_text:
-        raise TodoError(
-            "append note contains completed action history; remove it or place "
-            "illustrative Markdown inside a fenced code block"
-        )
-    body = sanitize_forward_looking_body(path.read_text(encoding="utf-8")).rstrip()
-    addition = f"## Note {now}\n\n{note_text}"
-    path.write_text(
-        f"{body}\n\n{addition}\n" if body else f"{addition}\n",
-        encoding="utf-8",
-    )
-    metadata = load_metadata(paths, target.thread_id)
-    metadata.update(
-        {
-            "thread_id": target.thread_id,
-            "thread_name": target.thread_name or metadata.get("thread_name", ""),
-            "updated_at": now,
-            "last_action": "append",
-            PATH_FIELD: path.as_posix(),
-        }
-    )
-    write_metadata(paths, target.thread_id, metadata, path_field=PATH_FIELD)
-    if pin:
-        metadata = set_pinned(paths, target, True)
-    return metadata
+        raise TodoError("append note contains completed action history; remove it or place illustrative Markdown inside a fenced code block")
+    def change(body: str, metadata: dict[str, Any]) -> str:
+        body = sanitize_forward_looking_body(body).rstrip()
+        addition = f"## Note {utc_now()}\n\n{note_text}"
+        return f"{body}\n\n{addition}\n" if body else f"{addition}\n"
+    return mutate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id), path_field=PATH_FIELD,
+                          action="append", change=change, pin=True if pin else None, **precondition)
 
 
 def todo_status(paths: ThreadOverlayPaths, target: ThreadTarget) -> dict[str, Any]:
@@ -684,15 +590,17 @@ def usage_payload() -> dict[str, Any]:
             {"label": "check-current-thread", "cmd": f"{ENTRYPOINT} check"},
         ],
         verbs=[
+            ToolVerb("outline", "local coordination lock only", "Read heading hierarchy and exact version-bound references."),
+            ToolVerb("repair", "local metadata and derived listing writes", "Reconcile observed body revision/listings without replaying an edit or inventing pin state."),
             ToolVerb("usage", "none", "Return this usage contract."),
             ToolVerb("activate", "writes local to-do state", "Create or replace a forward-looking thread to-do list and pin it by default."),
             ToolVerb("write", "writes local to-do state", "Replace a to-do Markdown body while excluding completion history."),
             ToolVerb("append", "writes local to-do state", "Append a timestamped current note and reject completion-history markup."),
-            ToolVerb("status", "none", "Show one to-do status or list pinned to-do lists."),
-            ToolVerb("read", "none", "Read the current forward-looking to-do body."),
+            ToolVerb("status", "local coordination lock only", "Show one to-do status or list pinned to-do lists."),
+            ToolVerb("read", "local coordination lock only", "Read the current forward-looking to-do body."),
             ToolVerb(
                 "check",
-                "none",
+                "local coordination lock only",
                 "Report a bounded pinned to-do excerpt with explicit window and truncation metadata.",
             ),
             ToolVerb("pin", "writes local to-do state", "Pin an existing to-do list."),
@@ -709,7 +617,19 @@ def usage_payload() -> dict[str, Any]:
             ToolSelector("--latest-thread", False, "Fallback selector for the newest indexed thread."),
             ToolSelector("--codex-root", False, "Override Codex home (CODEX_HOME, then ~/.codex)."),
             ToolSelector("--backup-root", False, "Override continuity storage (AGENT_FRAMEWORK_STATE_HOME or platform user state)."),
+            ToolSelector("--expected", False, "Mutation token from actual observed body/pin state; required for existing documents."),
+            ToolSelector("--expect-absent", False, "Explicit creation precondition; both body and metadata must be absent."),
+            ToolSelector("--section-ref", False, "Exact occurrence at the captured source/view revision from outline."),
+            ToolSelector("--cursor", False, "Continue the same selection/view/revision returned by read."),
         ],
+        command_details=argparse_command_details(build_parser()),
+        extra={"mutation_contract": {
+            "precondition": "Every mutation supplies --expected from the observed state, or --expect-absent for creation. Never silently reacquire and replay an old edit.",
+            "basis": "Body-only edits compare raw stored bytes and preserve current pin state. Explicit pin changes compare pin state; compound changes compare both.",
+            "publication": "Body, metadata and derived listings publish separately under document then registry OS locks. Partial errors identify committed/uncertain stages; read back then repair, never replay an append blindly.",
+            "coordination_scope": "Participating current tools only; old copied scripts and arbitrary editors do not acquire these locks.",
+            "read_effects": "Read/check/status/outline may create a local coordination lock file; they do not alter body or metadata.",
+            "read_coverage": "Text and JSON retain source/view identity, selection and delivered range. Cursors reject changed bytes or transformations; final page alone is not whole-selection receipt."}},
         output_formats=["text", "json"],
         side_effects={
             "writes_repo": False,
@@ -722,8 +642,8 @@ def usage_payload() -> dict[str, Any]:
         examples=[
             {"label": "Usage JSON", "cmd": f"{ENTRYPOINT} usage --format json"},
             {"label": "Check current pinned to-do list", "cmd": f"{ENTRYPOINT} check"},
-            {"label": "Add item", "cmd": f"{ENTRYPOINT} add --text \"Run focused tests\" --section now --pin"},
-            {"label": "Complete item", "cmd": f"{ENTRYPOINT} complete --id T001"},
+            {"label": "Add item", "cmd": f"{ENTRYPOINT} add --expected <observed-token> --text \"Run focused tests\" --section now --pin"},
+            {"label": "Complete item", "cmd": f"{ENTRYPOINT} complete --expected <observed-token> --id T001"},
         ],
         docs=[
             "AGENTS.md",
@@ -757,8 +677,8 @@ def cmd_activate(args: argparse.Namespace) -> int:
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
     body = read_body_arg(args) or render_template(args, target)
-    metadata = create_or_write_todo(paths, target, body, pin=not args.no_pin, action="activate")
-    emit_kv({"action": "activate", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = create_or_write_todo(paths, target, body, pin=not args.no_pin, action="activate", **mutation_options(args))
+    emit_kv({"action": "activate", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -769,8 +689,8 @@ def cmd_write(args: argparse.Namespace) -> int:
     body = read_body_arg(args)
     if body is None:
         raise TodoError("write requires --text, --body-file, or --stdin")
-    metadata = create_or_write_todo(paths, target, body, pin=args.pin, action="write")
-    emit_kv({"action": "write", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = create_or_write_todo(paths, target, body, pin=args.pin, action="write", **mutation_options(args))
+    emit_kv({"action": "write", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -781,8 +701,8 @@ def cmd_append(args: argparse.Namespace) -> int:
     note = read_body_arg(args)
     if note is None:
         raise TodoError("append requires --text, --body-file, or --stdin")
-    metadata = append_note(paths, target, note, pin=args.pin)
-    emit_kv({"action": "append", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = append_note(paths, target, note, pin=args.pin, **mutation_options(args))
+    emit_kv({"action": "append", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -800,18 +720,20 @@ def cmd_read(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    status = todo_status(paths, target)
-    if args.pinned_only and not status["pinned"]:
-        emit_kv({"action": "read", "active": False, **status}, as_json=args.json)
-        return 0
-    path = Path(status[PATH_FIELD])
-    if not path.exists():
-        raise TodoError(f"no thread to-do list exists for thread {target.thread_id}")
-    body = sanitize_forward_looking_body(path.read_text(encoding="utf-8"))
-    if args.json:
-        emit_kv({"action": "read", "active": True, **status, "body": body}, as_json=True)
-    else:
-        print(body, end="" if body.endswith("\n") else "\n")
+    payload = navigate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id),
+                               path_field=PATH_FIELD, transform=sanitize_forward_looking_body,
+                               view="todo-forward-looking-v1", args=args)
+    emit_kv({"action": args.command, **payload}, as_json=args.json)
+    return 0
+
+
+def cmd_repair(args: argparse.Namespace) -> int:
+    paths = resolve_paths(args)
+    target = resolve_thread_target(args, paths, required=True)
+    assert target is not None
+    result = mutate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id),
+                            path_field=PATH_FIELD, action="repair", repair=True, **mutation_options(args))
+    emit_kv({"action": "repair", **result}, as_json=args.json)
     return 0
 
 
@@ -819,13 +741,14 @@ def cmd_check(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    status = todo_status(paths, target)
+    captured = capture_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id), path_field=PATH_FIELD)
+    status = overlay_status(paths, target, artifact_path=todo_path(paths, target.thread_id), path_field=PATH_FIELD, captured=captured)
+    if args.expected_source is not None and args.expected_source != captured["body_revision"]:
+        raise TodoError("Stored source changed; reacquire with read or outline.", code="stale_selection")
     active = bool(status["exists"] and status["pinned"])
     body = ""
     if active:
-        body = sanitize_forward_looking_body(
-            Path(status[PATH_FIELD]).read_text(encoding="utf-8")
-        )
+        body, status["view"] = overlay_view(captured, sanitize_forward_looking_body, "todo-forward-looking-v1")
 
     wants_json = (
         normalize_format(
@@ -846,6 +769,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         backup_root=paths.backup_root,
         noun="to-do",
         as_json=wants_json,
+        source_revision=captured["body_revision"],
     )
 
     payload = {
@@ -863,8 +787,8 @@ def cmd_pin(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    metadata = set_pinned(paths, target, True)
-    emit_kv({"action": "pin", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = set_pinned(paths, target, True, **mutation_options(args))
+    emit_kv({"action": "pin", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
@@ -872,103 +796,41 @@ def cmd_unpin(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    metadata = set_pinned(paths, target, False)
-    emit_kv({"action": "unpin", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    metadata = set_pinned(paths, target, False, **mutation_options(args))
+    emit_kv({"action": "unpin", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
 
-def cmd_add(args: argparse.Namespace) -> int:
+def cmd_item_mutation(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    text = str(args.text or "").strip()
-    if not text:
+    item_result: dict[str, Any] = {}
+    if args.command == "add" and not str(args.text or "").strip():
         raise TodoError("add requires --text")
-    section = str(args.section or "now")
-    document = load_todo_document(paths, target)
-    item = TodoItem(section=section, checked=False, item_id=next_item_id(document), text=text)
-    document.items.append(item)
-    metadata = write_todo_document(paths, target, document, pin=args.pin, action="add")
-    emit_kv(
-        {"action": "add", "thread": target.__dict__, "item": item.to_payload(), "metadata": metadata},
-        as_json=args.json,
-    )
-    return 0
-
-
-def cmd_complete(args: argparse.Namespace) -> int:
-    paths = resolve_paths(args)
-    target = resolve_thread_target(args, paths, required=True)
-    assert target is not None
-    if not todo_path(paths, target.thread_id).exists():
-        raise TodoError(f"no thread to-do list exists for thread {target.thread_id}")
-    document = load_todo_document(paths, target)
-    item = pop_item(document, args.id)
-    item.checked = True
-    metadata = write_todo_document(paths, target, document, pin=False, action="complete")
-    emit_kv(
-        {
-            "action": "complete",
-            "thread": target.__dict__,
-            "item": item.to_payload(),
-            "removed_from_active": True,
-            "metadata": metadata,
-        },
-        as_json=args.json,
-    )
-    return 0
-
-
-def cmd_reopen(args: argparse.Namespace) -> int:
-    paths = resolve_paths(args)
-    target = resolve_thread_target(args, paths, required=True)
-    assert target is not None
-    if not todo_path(paths, target.thread_id).exists():
-        raise TodoError(f"no thread to-do list exists for thread {target.thread_id}")
-    document = load_todo_document(paths, target)
-    item = pop_item(document, args.id)
-    item.checked = False
-    item.section = str(args.section or "now")
-    document.items.append(item)
-    metadata = write_todo_document(paths, target, document, pin=False, action="reopen")
-    emit_kv(
-        {"action": "reopen", "thread": target.__dict__, "item": item.to_payload(), "metadata": metadata},
-        as_json=args.json,
-    )
-    return 0
-
-
-def cmd_remove(args: argparse.Namespace) -> int:
-    paths = resolve_paths(args)
-    target = resolve_thread_target(args, paths, required=True)
-    assert target is not None
-    if not todo_path(paths, target.thread_id).exists():
-        raise TodoError(f"no thread to-do list exists for thread {target.thread_id}")
-    document = load_todo_document(paths, target)
-    item = pop_item(document, args.id)
-    metadata = write_todo_document(paths, target, document, pin=False, action="remove")
-    emit_kv(
-        {"action": "remove", "thread": target.__dict__, "item": item.to_payload(), "metadata": metadata},
-        as_json=args.json,
-    )
-    return 0
-
-
-def cmd_clear(args: argparse.Namespace) -> int:
-    paths = resolve_paths(args)
-    target = resolve_thread_target(args, paths, required=True)
-    assert target is not None
-    metadata = write_todo_document(
-        paths,
-        target,
-        default_document(),
-        pin=not args.no_pin,
-        action="clear",
-        preserve_existing_pin=False,
-    )
-    if args.no_pin:
-        metadata = set_pinned(paths, target, False)
-    emit_kv({"action": "clear", "thread": target.__dict__, "metadata": metadata}, as_json=args.json)
+    def change(body: str, metadata: dict[str, Any]) -> str:
+        document = parse_todo_body(body) if body else default_document()
+        if args.command == "clear":
+            document = default_document()
+        elif args.command == "add":
+            item = TodoItem(section=args.section, checked=False, item_id=next_item_id(document), text=args.text.strip())
+            document.items.append(item)
+            item_result.update(item.to_payload())
+        else:
+            item = pop_item(document, args.id)
+            if args.command == "reopen":
+                item.checked = False
+                item.section = args.section
+                document.items.append(item)
+            elif args.command == "complete":
+                item.checked = True
+            item_result.update(item.to_payload())
+        return render_todo_body(document, target, created_at=str(metadata.get("created_at") or utc_now()), updated_at=utc_now()).strip() + "\n"
+    pin = not args.no_pin if args.command == "clear" else True if getattr(args, "pin", False) else None
+    result = mutate_overlay(paths, target, artifact_path=todo_path(paths, target.thread_id), path_field=PATH_FIELD,
+                            action=args.command, change=change, pin=pin, allow_create=args.command in {"add", "clear"}, **mutation_options(args))
+    emit_kv({"action": args.command, "thread": target.__dict__, "item": item_result,
+             "removed_from_active": args.command == "complete", **result}, as_json=args.json)
     return 0
 
 
@@ -1021,6 +883,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(read, defaults=False)
     add_selector(read)
     read.add_argument("--pinned-only", action="store_true", help="Return inactive status instead of body when unpinned.")
+    add_navigation_options(read)
     read.set_defaults(func=cmd_read)
 
     check = subparsers.add_parser("check", help="Agent hook: report/read the pinned to-do list for a selected thread.")
@@ -1044,6 +907,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Return the final --max-chars Unicode characters.",
     )
+    check.add_argument("--expected-source", help="Require the exact stored-byte revision returned by an earlier check.")
     check.set_defaults(func=cmd_check)
 
     pin = subparsers.add_parser("pin", help="Pin an existing to-do list.")
@@ -1062,39 +926,50 @@ def build_parser() -> argparse.ArgumentParser:
     add_item.add_argument("--text", required=True, help="Checklist item text.")
     add_item.add_argument("--section", choices=SECTION_CHOICES, default="now", help="Target open-item section.")
     add_item.add_argument("--pin", action="store_true", help="Pin after adding.")
-    add_item.set_defaults(func=cmd_add)
+    add_item.set_defaults(func=cmd_item_mutation)
 
     complete = subparsers.add_parser("complete", help="Complete and remove a checklist item.")
     add_common(complete, defaults=False)
     add_selector(complete)
     complete.add_argument("--id", required=True, help="Stable checklist item id, for example T001.")
-    complete.set_defaults(func=cmd_complete)
+    complete.set_defaults(func=cmd_item_mutation)
 
     reopen = subparsers.add_parser("reopen", help="Move an existing active or legacy checklist item.")
     add_common(reopen, defaults=False)
     add_selector(reopen)
     reopen.add_argument("--id", required=True, help="Stable checklist item id, for example T001.")
     reopen.add_argument("--section", choices=SECTION_CHOICES, default="now", help="Target open-item section.")
-    reopen.set_defaults(func=cmd_reopen)
+    reopen.set_defaults(func=cmd_item_mutation)
 
     remove = subparsers.add_parser("remove", help="Remove a checklist item.")
     add_common(remove, defaults=False)
     add_selector(remove)
     remove.add_argument("--id", required=True, help="Stable checklist item id, for example T001.")
-    remove.set_defaults(func=cmd_remove)
+    remove.set_defaults(func=cmd_item_mutation)
 
     clear = subparsers.add_parser("clear", help="Reset the to-do list body without deleting the thread directory.")
     add_common(clear, defaults=False)
     add_selector(clear)
     clear.add_argument("--no-pin", action="store_true", help="Clear without pinning the to-do list.")
-    clear.set_defaults(func=cmd_clear)
+    clear.set_defaults(func=cmd_item_mutation)
 
+    outline = subparsers.add_parser("outline", help="List exact revision-bound section occurrences and preamble.")
+    add_common(outline, defaults=False)
+    add_selector(outline)
+    outline.set_defaults(func=cmd_read)
+    repair = subparsers.add_parser("repair", help="Reconcile recorded body revision and derived listings, preserving known pin state; never replay an edit.")
+    add_common(repair, defaults=False)
+    add_selector(repair)
+    repair.set_defaults(func=cmd_repair)
+    for command in (activate, write, append, pin, unpin, add_item, complete, reopen, remove, clear, repair):
+        add_mutation_options(command)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    args.json = normalize_format(args.format, json_alias=args.json) == "json"
     try:
         return int(args.func(args))
     except ThreadOverlayError as exc:
@@ -1108,7 +983,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     summary=str(exc),
                     errors=[
                         {
-                            "code": "todo_error",
+                            "code": exc.code,
+                            "details": exc.details,
                             "message": str(exc),
                             "retry_hint": f"Run `{ENTRYPOINT} usage`.",
                         }
@@ -1118,7 +994,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 stream=sys.stderr,
             )
         else:
-            print(f"ERROR: {exc}", file=sys.stderr)
+            print(f"ERROR [{exc.code}]: {exc}", file=sys.stderr)
+            if exc.details:
+                import json
+                print("details: " + json.dumps(exc.details, sort_keys=True), file=sys.stderr)
             print(f"Retry hint: run `{ENTRYPOINT} usage`.", file=sys.stderr)
         return 1
 

@@ -50,13 +50,13 @@
         "usage_command": "python scripts/tools/codex_thread_sketchpad.py usage",
         "json_usage_command": "python scripts/tools/codex_thread_sketchpad.py usage --format json",
         "safe_no_arg": "usage",
-        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin"],
-        "selectors": ["--thread-id", "--codex-root", "--backup-root"],
+        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin", "outline", "repair"],
+        "selectors": ["--thread-id", "--codex-root", "--backup-root", "--expected", "--expect-absent", "--section-ref", "--cursor"],
         "formats": ["text", "json"]
       },
-      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_sketchpads bodies, metadata and pinned registry"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; activate/write replace selected contents, append adds text"},
-      "verification": {"success": "Read/check returns the selected task state and explicit truncation metadata. Pinning is toolkit-local and does not inject conversation messages.", "failure": "Missing or ambiguous identity/state returns a bounded error. Use the actual task ID; never guess the latest conversation."},
-      "docs": ["docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md"],
+      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_sketchpads bodies, metadata, pinned registry and coordination locks"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; mutations require observed --expected or creation --expect-absent; reads may create coordination locks"},
+      "verification": {"success": "Read/check returns the selected task state and source/view revisions and explicit truncation metadata. Outline/cursors bind exact sections; repair reconciles interrupted publication. Pinning is toolkit-local and does not inject conversation messages.", "failure": "Missing identity, stale mutation basis or inconsistent state returns a bounded error without replay. Use the actual task ID; never guess the latest conversation."},
+      "docs": ["docs/instructions/agent_workflow/README.md"],
       "stability": "experimental"
     },
     {
@@ -77,13 +77,13 @@
         "usage_command": "python scripts/tools/codex_thread_todo.py usage",
         "json_usage_command": "python scripts/tools/codex_thread_todo.py usage --format json",
         "safe_no_arg": "usage",
-        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin", "add", "complete", "reopen", "remove", "clear"],
-        "selectors": ["--thread-id", "--codex-root", "--backup-root", "--id", "--section"],
+        "verbs": ["usage", "activate", "write", "append", "status", "read", "check", "pin", "unpin", "add", "complete", "reopen", "remove", "clear", "outline", "repair"],
+        "selectors": ["--thread-id", "--codex-root", "--backup-root", "--id", "--section", "--expected", "--expect-absent", "--section-ref", "--cursor"],
         "formats": ["text", "json"]
       },
-      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_todos bodies, metadata and pinned registry"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; mutation verbs update only the selected task's active actions"},
-      "verification": {"success": "Read/check returns the selected task state. Complete removes the active item; it does not retain a completion transcript.", "failure": "Missing task or item identities return a bounded error; inspect the exact current task before updating it."},
-      "docs": ["docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md"],
+      "side_effects": {"writes_repo": false, "writes_paths": ["Configured continuity root: thread_todos bodies, metadata, pinned registry and coordination locks"], "modifies_remote": false, "network_access": "none", "danger_level": "low", "supports_dry_run": false, "idempotent": false, "default_mode": "usage; conditional mutations update selected active actions; reads may create coordination locks"},
+      "verification": {"success": "Read/check returns task/source identity and coverage; stale edits/cursors are refused. Complete removes the active item; it does not retain a completion transcript.", "failure": "Missing task or item identities return a bounded error; inspect the exact current task before updating it."},
+      "docs": ["docs/instructions/agent_workflow/README.md"],
       "stability": "experimental"
     },
     {
