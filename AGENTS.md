@@ -11,6 +11,11 @@ the full framework and practical guides accompany work across hosts, runtimes,
 delegation and projectless contexts. Each provision keeps its actual subject and
 conditions; changing machines does not change a host-specific rule's scope.
 
+This is the common operating entrypoint throughout that adopted scope, including
+other projects and projectless work. Repository-specific provisions retain their
+actual subjects; adopting this guidance does not move another project's source
+or confer authority over it.
+
 Preserve the user's requested outcome, accepted meaning, scope, standing authority
 and protected interests across continued, delegated and compacted work. A
 checkpoint or subtask is progress within that outcome, not a new meaning of
@@ -25,12 +30,31 @@ outside tracked release source in user-configured storage.
 
 ## Ground the actual work
 
+Existing work does not become a requirement merely because it is inherited.
+Preserve the actual purpose and governing constraints while independently judging
+the approach, including materially relevant alternatives absent from current work.
+Within granted discretion, retain, adapt, replace or begin a fresh approach on
+current grounds. Preserve needed results and dependencies without making their
+preservation an obligation to continue the method that produced them. Use competent
+authority for a binding decision that needs revision; no novelty, restart or
+exhaustive-comparison duty follows. Apply the complete
+[independent-judgment owner](docs/instructions/framework/Conceptual_Model.md#independent-judgment-over-inherited-approaches).
+
 Read the real sources relevant to the discussion, design, change or operation.
 Use `rg`, source/manifests, Git and suitable observations. Summaries and catalogs
 route attention; they cannot replace consequential meaning or current evidence.
 Reuse stable adequate understanding; renew affected grounding after a material
 change, uncertainty or context loss. Investigate recoverable facts and resolve
 routine authorized choices without repeatedly asking for permission.
+
+Complete current instructions or source already delivered count as read while
+their meaning remains adequately retained. A new turn or compaction alone does
+not require replaying startup reads. Recover lost or changed meaning, preserving
+full useful framework and system understanding. Select relevant tool results
+once, narrow discovery to the job, and size reads and whole batches to avoid
+truncation-driven rereads. Recover full relevant explanations when summaries
+are insufficient; follow
+[context and output selection](docs/instructions/practice/using_capabilities.md#retrieve-useful-context-without-replaying-it).
 
 Build general capabilities at the requested scope. Accounts, providers and
 examples are inputs, not reasons for separate hardcoded tools or adapters. Reuse
@@ -44,12 +68,36 @@ support scoped behavior claims. Expose material drift rather than silently using
 one as the other's authority. Semantic changes need covering direction or accepted
 authority. Update the real owner and affected consumers in the same change.
 
+Use the strongest warranted conclusion without unsupported promotion, global
+downgrading or unproductive caution. Maintain semantic alignment: connect ordinary
+language to actual systems, resources and prior decisions, and explain
+consequential interpretations clearly. Progressively unpack materially distinct
+intentions and unresolved choices. Add newly discovered consequential questions
+to the discussion, keep acceptance scoped to what was understood, and preserve
+unresolved scope across turns. Read the relevant practical guide and complete
+conceptual relationships where they bear on the decision. Standing grants persist; a known correction or
+revocation must reach participants relying on the earlier meaning. Do not turn
+inquiry into implementation or ask again for authority already supplied.
+
 The [instruction index](docs/instructions/README.md) supplies routes rather than a
-mandatory reading sequence. Recover relevant purpose through
+mandatory reading sequence. Recover accepted company, product, system or program
+intent by subject and purpose. For this toolkit, [architecture](docs/architecture.md)
+owns its purpose and implementation boundaries; other projects retain their own
+intent and system owners. Recover relevant purpose through
 [north-star discovery](docs/north_star/INDEX.md). In an adopting multi-system
 project, use its system INDEX, Vocabulary and complete applying owners; preserve
 document roles and qualifications. Declared intent proves neither implementation
 nor authority to expand the task.
+
+Keep current knowledge and historical records in separate files. Preserve full
+useful system purpose, concepts, methods, rationale and constraints in current
+owners; age does not make accepted meaning historical. Be extremely discerning:
+every current passage needs a continuing explanatory, operational or decision
+purpose. Replace superseded state; do not append completion bookkeeping or
+shortened historical summaries. Exclude historical bodies from default loading,
+including startup, handoff and compaction recovery. Retrieve a specific record
+when the user asks or the task needs that evidence. Follow the complete
+[current/history boundary](docs/instructions/repo_organization/system_documentation.md#current-knowledge-and-historical-evidence).
 
 For new systems and substantial architectural changes,
 [choose technology deliberately](docs/instructions/practice/changing_software.md#choose-languages-and-technology-for-the-system).
@@ -63,8 +111,14 @@ reset, stash, overwrite or absorb them merely to simplify this task.
 
 ## Exact-task continuity and accepted decisions
 
-For a Codex task with an actual identity, check and read both existing continuity
-owners before other work, using explicit task and configured storage selectors:
+Apply the [single Codex delegation-depth rule](docs/instructions/framework/Codex_Home_Guidance.md#codex-delegation-depth),
+carried in home guidance. If it was not supplied, recover that section before
+delegating. This is an instruction rule; the toolkit does not install a native
+runtime depth cap.
+
+For a Codex task with an actual identity, on first acquisition check and read both
+continuity owners before other work, using explicit task and configured storage
+selectors:
 
 ```text
 python scripts/tools/codex_thread_sketchpad.py check --thread-id <actual-id> --codex-root <codex-home> --backup-root <continuity-root>
@@ -79,6 +133,12 @@ unavailable identity or storage precisely rather than inventing a parallel store
 or blindly reactivating a task. These tools' pinned registry is local continuity
 state, not a claim that a desktop UI pin or automatic context injection occurred.
 
+An already-delivered complete body, including a complete check excerpt, satisfies
+the read. Reuse adequately retained content across turns and compaction; recover
+missing or changed material. Use exact-task status only when freshness or pin
+state needs checking, not as a per-turn ritual. Default text readback is concise;
+select needed JSON fields instead of printing an entire envelope beside its body.
+
 Mutations require `--expected <mutation_token>` from the observed read/check or
 `--expect-absent` for creation. Preserve newer conflicting state and reconcile the
 edit before trying again. Use revision-bound `outline`, section reads and cursors
@@ -86,11 +146,18 @@ for bounded recovery. A partial update needs readback and repair rather than
 blind replay; the [continuity owner](docs/instructions/agent_workflow/README.md#conditional-updates-and-recovery)
 explains the complete contract and upgrade boundary.
 
-Maintain one current baseline. Remove superseded wording without continuing
-explanatory value, update dependent actions and remove completed entries. To-do
-contains only Now / Next / Parked. After authorized, verified promotion, replace
-duplicated promoted bodies with durable-source pointers. Do not keep completion
-transcripts or add automatic body injection/hooks. The
+Keep the sketchpad available, but add only ideas the user asks to keep there or
+ideas an agent truly needs for continued development or reasoning. Empty is valid;
+do not fill it with operational bookkeeping or task-summary boilerplate. Maintain
+each admitted idea's current form and remove superseded wording. After authorized,
+verified promotion, clear the promoted material completely: no pointer, summary
+or completion entry remains. Preserve other unpromoted ideas. To-do contains only
+Now / Next / Parked unfinished work and discussion; update dependent actions and
+remove completed items and their obsolete detail completely. Do not add generated
+Notes/Metadata sections, timestamped bookkeeping or completion summaries. Keep
+only detail needed for remaining work; empty sections are valid. These overlays
+preserve their distinct purposes, not parallel authority. Do not add automatic
+body injection/hooks. The
 [workflow owner](docs/instructions/agent_workflow/README.md#pinned-thread-continuity)
 and [lock/promotion lifecycle](docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md)
 explain the complete method.
@@ -241,6 +308,9 @@ instances whose dependents and authority permit it. Close disposable resources
 when their useful work ends; preserve user-owned host infrastructure and retained
 services. Do not reset persistent data to fix a convenience problem.
 
+Select evidence for the actual reliance, consequences and uncertainty. Keep
+conclusions proportional without ceremonial caution, and retain protection and
+explanations where their continued value warrants them.
 Use focused native checks for the actual property and uncertainty. Check an
 uncertain foundation early if it changes what to do next; otherwise finish a
 coherent change before verification. Preserve exit codes and useful diagnostics,

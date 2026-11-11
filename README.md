@@ -51,7 +51,7 @@ cloning the source does not modify your agent configuration.
 
 | Capability | Use |
 |---|---|
-| Sketchpad and to-do | Preserve current understanding and actions with revision-checked updates, section/cursor reads and interruption recovery. |
+| Sketchpad and to-do | Develop admitted ideas and track unfinished work with revision-checked updates, section/cursor reads and interruption recovery; promoted and completed material is cleared. |
 | Instruction delivery | Render, preview, install, update and remove the managed instruction section. |
 | Tool discovery | Find the included commands and read their actual interfaces before use. |
 | Credential handoff | Fill an observed browser field from protected, account-bound custody without putting the value in ordinary agent output. |

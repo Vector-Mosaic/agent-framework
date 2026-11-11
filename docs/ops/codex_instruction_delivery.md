@@ -1,10 +1,11 @@
 # Home instruction delivery
 
-The framework [orientation kernel](../instructions/framework/README.md#orientation-kernel)
-is the single authored source for generated home guidance. Repository `AGENTS.md`
-owns this checkout's repository-specific conventions. Home guidance points to
-complete owners and the tools; it does not copy the full conceptual model into
-every task or create a second conceptual authority.
+The [home guidance source](../instructions/framework/Codex_Home_Guidance.md)
+is the single authored source for generated home guidance. The common `AGENTS.md`
+entrypoint owns practical operating instructions throughout the adopted scope;
+repository-specific provisions retain their actual subjects. Home guidance gives
+orientation, the depth rule, explicit bindings and recovery routes. It does not
+repeat the operating body or create a second conceptual authority.
 
 `python scripts/tools/codex_instruction_delivery.py usage --format json` describes
 the complete CLI. The [setup guide](../setup.md) covers installation on Windows
@@ -13,7 +14,7 @@ and Linux, profile/state selection and continuity use.
 ## Source and destination
 
 The renderer extracts exactly one `codex-home-kernel:start` / `end` pair from
-`docs/instructions/framework/README.md`. It binds `REPO_ROOT`, `CODEX_HOME` and
+`docs/instructions/framework/Codex_Home_Guidance.md`. It binds `REPO_ROOT`, `CODEX_HOME` and
 `BACKUP_ROOT` to explicit absolute paths and `PYTHON_COMMAND` to the actual
 interpreter running the installer. Emitted commands use PowerShell call syntax
 on Windows and POSIX shell quoting on Linux, preserving a selected virtual

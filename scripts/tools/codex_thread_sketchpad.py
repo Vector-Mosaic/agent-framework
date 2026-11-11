@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local-only per-thread sketchpad for Codex intent overlays."""
+"""Local-only per-thread sketchpad for selected ideas, empty when unused."""
 
 from __future__ import annotations
 
@@ -71,54 +71,23 @@ def set_pinned(paths: ThreadOverlayPaths, target: ThreadTarget, pinned: bool, **
                           path_field=PATH_FIELD, action="pin" if pinned else "unpin", pin=pinned, **precondition)
 
 
-def render_template(args: argparse.Namespace, target: ThreadTarget) -> str:
-    now = utc_now()
-    main_goal = str(getattr(args, "main_goal", "") or "").strip() or "(fill in the current thread goal)"
-    intent_lens = str(getattr(args, "intent_lens", "") or "").strip() or "(what should work be judged through?)"
-    return_to = str(getattr(args, "return_to", "") or "").strip() or "(where to loop back after necessary side quests)"
-    non_goals = [str(item).strip() for item in getattr(args, "non_goal", []) if str(item).strip()]
-    non_goal_text = "\n".join(f"- {item}" for item in non_goals) if non_goals else "- (none yet)"
-    title = str(getattr(args, "title", "") or "").strip() or "Thread Sketchpad"
-    thread_name = target.thread_name or "(unknown)"
-    return "\n".join(
-        [
-            f"# {title}",
-            "",
-            "## Main Goal",
-            "",
-            main_goal,
-            "",
-            "## Intent Lens",
-            "",
-            intent_lens,
-            "",
-            "## Non-Goals / Guardrails",
-            "",
-            non_goal_text,
-            "",
-            "## Return-To Thread",
-            "",
-            return_to,
-            "",
-            "## Promotion Notes",
-            "",
-            "- Promote this sketchpad into formal repo docs or plan docs only when the content becomes durable repo intent, current truth, or accepted execution structure.",
-            "",
-            "## Metadata",
-            "",
-            f"- thread_id: `{target.thread_id}`",
-            f"- thread_title: {thread_name}",
-            f"- created_at: {now}",
-            "- storage: local-only configured continuity root / thread_sketchpads",
-            "- authority: thread-local intent overlay, not repo truth",
-            "",
-        ]
-    )
+def supplied_ideas(args: argparse.Namespace) -> str:
+    # Retain explicitly supplied text from the older option names, without
+    # creating an operational template or placeholder content.
+    values = [getattr(args, "main_goal", ""), getattr(args, "intent_lens", ""),
+              *getattr(args, "non_goal", []), getattr(args, "return_to", "")]
+    ideas = [str(value).strip() for value in values if str(value or "").strip()]
+    if not ideas:
+        return ""
+    title = str(getattr(args, "title", "") or "").strip()
+    return "\n\n".join(([f"# {title}"] if title else []) + ideas)
 
 
 def create_or_write_sketchpad(paths: ThreadOverlayPaths, target: ThreadTarget, body: str, *,
                               pin: bool, action: str, **precondition: Any) -> dict[str, Any]:
-    prepared = body.strip() + "\n"
+    prepared = body.strip()
+    if prepared:
+        prepared += "\n"
     return mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
                           path_field=PATH_FIELD, action=action, change=lambda body, metadata: prepared, allow_create=True,
                           pin=True if pin else None, **precondition)
@@ -159,15 +128,15 @@ def usage_payload() -> dict[str, Any]:
             ToolVerb("outline", "local coordination lock only", "Read heading hierarchy and exact version-bound references."),
             ToolVerb("repair", "local metadata and derived listing writes", "Reconcile observed body revision/listings without replaying an edit or inventing pin state."),
             ToolVerb("usage", "none", "Return this usage contract."),
-            ToolVerb("activate", "writes local sketchpad state", "Create or replace a thread sketchpad and pin it by default."),
+            ToolVerb("activate", "writes local sketchpad state", "Create an empty sketchpad or store supplied ideas; pin by default and preserve existing content when no ideas are supplied."),
             ToolVerb("write", "writes local sketchpad state", "Replace an existing thread sketchpad body."),
             ToolVerb("append", "writes local sketchpad state", "Append a timestamped note to a thread sketchpad."),
-            ToolVerb("status", "local coordination lock only", "Show one sketchpad status or list pinned sketchpads."),
+            ToolVerb("status", "local coordination lock only", "Show exact-task revision, pin state and mutation token without the body, or list pinned sketchpads."),
             ToolVerb("read", "local coordination lock only", "Read a sketchpad body."),
             ToolVerb(
                 "check",
                 "local coordination lock only",
-                "Report a bounded pinned sketchpad excerpt with explicit window and truncation metadata.",
+                "Read a bounded pinned sketchpad excerpt with explicit coverage. A complete excerpt is already the body read; recover only missing content.",
             ),
             ToolVerb("pin", "writes local sketchpad state", "Pin an existing sketchpad."),
             ToolVerb("unpin", "writes local sketchpad state", "Unpin a sketchpad."),
@@ -190,7 +159,8 @@ def usage_payload() -> dict[str, Any]:
             "publication": "Body, metadata and derived listings publish separately under document then registry OS locks. Partial errors identify committed/uncertain stages; read back then repair, never replay an append blindly.",
             "coordination_scope": "Participating current tools only; old copied scripts and arbitrary editors do not acquire these locks.",
             "read_effects": "Read/check/status/outline may create a local coordination lock file; they do not alter body or metadata.",
-            "read_coverage": "Text and JSON retain source/view identity, selection and delivered range. Cursors reject changed bytes or transformations; final page alone is not whole-selection receipt."}},
+            "read_coverage": "Text and JSON retain source/view identity, selection and delivered range. A complete check already supplies the body. Reuse adequate retained content; use status when revision/pin freshness matters. Cursors reject changed bytes or transformations; final page alone is not whole-selection receipt.",
+            "read_presentation": "Text presents concise readback; JSON retains full structured metadata and navigation. Use one representation. For section ancestry already retained at the same revision, start with --context references; continuation cursors preserve that mode."}},
         output_formats=["text", "json"],
         side_effects={
             "writes_repo": False,
@@ -203,7 +173,8 @@ def usage_payload() -> dict[str, Any]:
         examples=[
             {"label": "Usage JSON", "cmd": f"{ENTRYPOINT} usage --format json"},
             {"label": "Check current pinned sketchpad", "cmd": f"{ENTRYPOINT} check"},
-            {"label": "Append note", "cmd": f"{ENTRYPOINT} append --expected <observed-token> --text \"Updated intent lens.\""},
+            {"label": "Create an empty pinned sketchpad", "cmd": f"{ENTRYPOINT} activate --thread-id <actual-id> --expect-absent"},
+            {"label": "Store a selected idea", "cmd": f"{ENTRYPOINT} write --expected <observed-token> --text \"<idea the user requested or the agent needs to retain>\""},
         ],
         docs=["AGENTS.md"],
         errors=[
@@ -229,8 +200,17 @@ def cmd_activate(args: argparse.Namespace) -> int:
     paths = resolve_paths(args)
     target = resolve_thread_target(args, paths, required=True)
     assert target is not None
-    body = read_body_arg(args) or render_template(args, target)
-    metadata = create_or_write_sketchpad(paths, target, body, pin=not args.no_pin, action="activate", **mutation_options(args))
+    body = read_body_arg(args)
+    if body is None:
+        body = supplied_ideas(args)
+    if not body.strip() and not args.expect_absent:
+        # Activation without ideas must not erase an existing body. Use write
+        # with an explicit empty body when clearing content is intended.
+        metadata = mutate_overlay(paths, target, artifact_path=sketchpad_path(paths, target.thread_id),
+                                  path_field=PATH_FIELD, action="activate",
+                                  pin=None if args.no_pin else True, **mutation_options(args))
+    else:
+        metadata = create_or_write_sketchpad(paths, target, body, pin=not args.no_pin, action="activate", **mutation_options(args))
     emit_kv({"action": "activate", "thread": target.__dict__, **metadata}, as_json=args.json)
     return 0
 
@@ -365,15 +345,15 @@ def build_parser() -> argparse.ArgumentParser:
     add_common(usage, defaults=False)
     usage.set_defaults(func=cmd_usage)
 
-    activate = subparsers.add_parser("activate", help="Create or replace a thread sketchpad and pin it by default.")
+    activate = subparsers.add_parser("activate", help="Create an empty sketchpad or store supplied ideas; preserve existing content when no ideas are supplied and pin by default.")
     add_common(activate, defaults=False)
     add_selector(activate)
-    activate.add_argument("--title", default="Thread Sketchpad", help="Sketchpad title.")
-    activate.add_argument("--main-goal", default="", help="Primary thread goal.")
-    activate.add_argument("--intent-lens", default="", help="How work should be evaluated.")
-    activate.add_argument("--non-goal", action="append", default=[], help="Non-goal or guardrail. Repeatable.")
-    activate.add_argument("--return-to", default="", help="Main thread to return to after side quests.")
-    activate.add_argument("--text", default=None, help="Full sketchpad body.")
+    activate.add_argument("--title", default="", help="Optional heading for explicitly supplied legacy-option ideas; does not create content on its own.")
+    activate.add_argument("--main-goal", default="", help="Optional idea text through a legacy option name; prefer --text or --stdin.")
+    activate.add_argument("--intent-lens", default="", help="Optional idea text through a legacy option name; prefer --text or --stdin.")
+    activate.add_argument("--non-goal", action="append", default=[], help="Optional idea text through a legacy option name. Repeatable; prefer --text or --stdin.")
+    activate.add_argument("--return-to", default="", help="Optional idea text through a legacy option name; prefer --text or --stdin.")
+    activate.add_argument("--text", default=None, help="Full idea content. Empty input creates an empty sketchpad or preserves existing content; use write to clear it.")
     activate.add_argument("--body-file", default=None, help="Read full sketchpad body from file.")
     activate.add_argument("--stdin", action="store_true", help="Read full sketchpad body from stdin.")
     activate.add_argument("--no-pin", action="store_true", help="Create without pinning.")
@@ -397,7 +377,7 @@ def build_parser() -> argparse.ArgumentParser:
     append.add_argument("--pin", action="store_true", help="Pin after appending.")
     append.set_defaults(func=cmd_append)
 
-    status = subparsers.add_parser("status", help="Show one sketchpad status, or list pinned sketchpads.")
+    status = subparsers.add_parser("status", help="Show exact-task revision/pin state and mutation token without the body, or list pinned sketchpads.")
     add_common(status, defaults=False)
     add_selector(status)
     status.set_defaults(func=cmd_status)
@@ -409,7 +389,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_navigation_options(read)
     read.set_defaults(func=cmd_read)
 
-    check = subparsers.add_parser("check", help="Agent hook: report/read the pinned sketchpad for a selected thread.")
+    check = subparsers.add_parser("check", help="Read a bounded pinned sketchpad excerpt; a complete excerpt already supplies the body.")
     add_common(check, defaults=False)
     add_selector(check)
     check.add_argument(

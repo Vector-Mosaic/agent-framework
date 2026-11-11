@@ -28,7 +28,7 @@ from repo_platform.tooling.tool_handshake import (
 
 TOOL_ID = "tool.ops.codex_instruction_delivery"
 ENTRYPOINT = "python scripts/tools/codex_instruction_delivery.py"
-SOURCE_PATH = Path("docs/instructions/framework/README.md")
+SOURCE_PATH = Path("docs/instructions/framework/Codex_Home_Guidance.md")
 START = "<!-- codex-home-kernel:start -->"
 END = "<!-- codex-home-kernel:end -->"
 MANAGED_START = b"<!-- agent-framework:managed:start -->"

@@ -253,7 +253,7 @@ def test_process_exit_at_publication_boundary_releases_lock_and_preserves_body(t
 
 @pytest.mark.parametrize('verb,arguments',[
     ('activate',['--text','replacement']),('write',['--text','replacement']),
-    ('append',['--text','note']),('pin',[]),('unpin',[]),('clear',[]),
+    ('pin',[]),('unpin',[]),('clear',[]),
     ('add',['--text','new item']),('complete',['--id','T001']),
     ('reopen',['--id','T001']),('remove',['--id','T001']),
 ])
@@ -333,3 +333,142 @@ def test_final_readback_failure_preserves_committed_effects(tmp_path, monkeypatc
     current = capture(data)
     mutate(data, repair=True, expected=current['mutation_token'])
     assert data[2].read_text() == 'before\nonce\n'
+
+
+@pytest.mark.parametrize('name', ['sketchpad', 'todo'])
+@pytest.mark.parametrize('body', ['', 'unique-readback-😀\n', 'unique-readback-😀\n' + 'x' * 4100],
+                         ids=['empty', 'complete-unicode', 'paged-unicode'])
+def test_compact_check_keeps_coverage_and_conditional_write_basis(tmp_path, capsys, name, body):
+    from scripts.tools import codex_thread_sketchpad, codex_thread_todo
+    cli = codex_thread_sketchpad if name == 'sketchpad' else codex_thread_todo
+    data = fixture(tmp_path / 'fixture with spaces', body, name=name)
+    binding = ['--codex-root', str(data[0].codex_root), '--backup-root', str(data[0].backup_root),
+               '--thread-id', TID]
+    assert cli.main(['check', *binding, '--json']) == 0
+    structured = json.loads(capsys.readouterr().out)
+    assert cli.main(['check', *binding]) == 0
+    text = capsys.readouterr().out
+    fields = dict(line.split(': ', 1) for line in text.splitlines() if ': ' in line)
+    meta = json.loads(fields['excerpt_meta'])
+    assert meta['range'] == structured['excerpt_meta']['range']
+    assert meta['total_chars'] == structured['excerpt_meta']['total_chars']
+    assert meta['truncated'] == structured['excerpt_meta']['truncated']
+    assert json.loads(fields['source'])['revision'] == structured['source']['revision']
+    assert fields['mutation_token'] == structured['mutation_token']
+    assert 'metadata:' not in text
+    assert 'full:' not in text
+    assert structured['excerpt_meta']['commands']['full']  # Existing JSON contract stays intact.
+    if meta['truncated']:
+        # Argv remains platform-neutral for paths with spaces and carries
+        # the original source revision into the next window.
+        command = json.loads(fields['next'])
+        assert cli.main(command[2:]) == 0
+        next_text = capsys.readouterr().out
+        assert 'full:' not in next_text and 'next:' not in next_text
+        assert '"truncated_before": true' in next_text
+        assert '"truncated_after": false' in next_text
+        assert cli.main(['check', *binding, '--tail', '--max-chars', '8']) == 0
+        tail_text = capsys.readouterr().out
+        tail_fields = dict(line.split(': ', 1) for line in tail_text.splitlines() if ': ' in line)
+        full_command = json.loads(tail_fields['full'])
+        assert 'next:' not in tail_text
+        assert '"truncated_before": true' in tail_text
+        assert cli.main(full_command[2:]) == 0
+        assert body in capsys.readouterr().out
+        data[2].write_text(body + 'changed\n', encoding='utf-8')
+        assert cli.main(command[2:]) == 1
+        assert 'stale_selection' in capsys.readouterr().err
+        assert cli.main(full_command[2:]) == 1
+        assert 'stale_selection' in capsys.readouterr().err
+    else:
+        assert 'next:' not in text
+        assert text.count('unique-readback-😀') == (1 if body else 0)
+        # A text-only reader can use exactly its observed mutation basis.
+        replacement = '# To-do\n\n## Now\n- replacement\n\n## Next\n\n## Parked\n'
+        assert cli.main(['write', *binding, '--expected', fields['mutation_token'],
+                         '--text', replacement]) == 0
+        capsys.readouterr()
+        assert cli.main(['write', *binding, '--expected', fields['mutation_token'],
+                         '--text', replacement.replace('replacement', 'stale')]) == 1
+        assert 'revision_conflict' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('name', ['sketchpad', 'todo'])
+def test_compact_status_read_and_inconsistent_state_keep_needed_evidence(tmp_path, capsys, name):
+    from scripts.tools import codex_thread_sketchpad, codex_thread_todo
+    cli = codex_thread_sketchpad if name == 'sketchpad' else codex_thread_todo
+    data = fixture(tmp_path, 'unique-readback\n', name=name)
+    binding = ['--codex-root', str(data[0].codex_root), '--backup-root', str(tmp_path), '--thread-id', TID]
+    assert cli.main(['status', *binding]) == 0
+    text = capsys.readouterr().out
+    assert 'unique-readback' not in text
+    assert 'mutation_token: ' + data[3] in text
+    assert 'pinned: True' in text and 'consistency: consistent' in text
+    assert cli.main(['read', *binding]) == 0
+    text = capsys.readouterr().out
+    assert text.count('unique-readback') == 1
+    assert '"complete_selection": true' in text
+    assert 'parser_support: ' in text
+    assert 'next_cursor:' not in text
+    data[2].write_text('uncoordinated change\n')
+    assert cli.main(['status', *binding]) == 0
+    text = capsys.readouterr().out
+    assert 'consistency: revision_mismatch' in text
+    assert 'metadata:' in text  # Preserve diagnostic state needed for repair.
+
+
+def test_reference_only_ancestry_stays_reference_only_on_every_page(tmp_path):
+    body = 'preamble\n# Parent\nintro\n## Child\nchild content\n'
+    data = fixture(tmp_path, body)
+    section = navigate(data, command='outline')['sections'][1]['section_ref']
+    page = navigate(data, section_ref=section, context='references', max_chars=4)
+    parts = []
+    while True:
+        assert len(page['context']) == 2
+        assert all('body' not in item for item in page['context'])
+        parts.append(page['body'])
+        if not page['next_cursor']:
+            break
+        page = navigate(data, cursor=page['next_cursor'], max_chars=4)
+    assert ''.join(parts) == '## Child\nchild content\n'
+    assert page['delivered']['complete_selection'] is False
+    data[2].write_text(body.replace('intro', 'changed intro'))
+    with pytest.raises(o.ThreadOverlayError, match='source, view'):
+        navigate(data, section_ref=section, context='references')
+
+
+@pytest.mark.parametrize('name', ['sketchpad', 'todo'])
+@pytest.mark.parametrize('state', ['absent', 'unpinned', 'missing_metadata'])
+def test_compact_check_discloses_inactive_state_without_body(tmp_path, capsys, name, state):
+    from scripts.tools import codex_thread_sketchpad, codex_thread_todo
+    cli = codex_thread_sketchpad if name == 'sketchpad' else codex_thread_todo
+    data = fixture(tmp_path, 'private fixture body\n', name=name)
+    if state == 'unpinned':
+        mutate(data, pin=False, expected=data[3])
+    else:
+        o.metadata_path(data[0], TID).unlink()
+        if state == 'absent':
+            data[2].unlink()
+    binding = ['--codex-root', str(data[0].codex_root), '--backup-root', str(tmp_path), '--thread-id', TID]
+    assert cli.main(['check', *binding]) == 0
+    text = capsys.readouterr().out
+    assert 'active: False' in text and 'pinned: False' in text
+    assert 'private fixture body' not in text
+    assert '"mode": "inactive"' in text
+    assert 'next:' not in text and 'full:' not in text
+    if state == 'missing_metadata':
+        assert 'consistency: inconsistent' in text
+        assert 'metadata: {}' in text
+    else:
+        assert 'consistency: ' + ('absent' if state == 'absent' else 'consistent') in text
+
+
+def test_compact_todo_read_keeps_distinct_stored_and_displayed_revisions(tmp_path, capsys):
+    from scripts.tools import codex_thread_todo as cli
+    data = fixture(tmp_path, '# To-do\n## Now\n- active\n## Done\n- history\n', name='todo')
+    binding = ['--codex-root', str(data[0].codex_root), '--backup-root', str(tmp_path), '--thread-id', TID]
+    assert cli.main(['read', *binding]) == 0
+    text = capsys.readouterr().out
+    fields = dict(line.split(': ', 1) for line in text.splitlines() if ': ' in line)
+    assert json.loads(fields['source'])['revision'] != json.loads(fields['view'])['revision']
+    assert '- active' in text and '- history' not in text

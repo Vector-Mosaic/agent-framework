@@ -34,6 +34,86 @@ governs moving accepted discussion into durable authority. Neither changing a
 document's folder nor promoting it elevates its authority over its parent
 purpose.
 
+## Current knowledge and historical evidence
+
+Keep current knowledge and historical records in **separate files** across the
+repository. This applies to system docs, operational guidance, instruction
+owners and their supplements. A historical appendix in a current file still
+loads with that file and does not satisfy the separation.
+
+Current knowledge includes the full useful purpose, intent, goals and non-goals,
+accepted concepts and relationships, methods, design, behavior, constraints,
+consequential rationale and rejected alternatives, current limitations and
+qualified conclusions. Preserve enough explanation to understand and correctly
+develop the system. An older accepted decision, mathematical result or scientific
+qualification remains current while it still defines the system or its frontier;
+neither age nor length makes it historical. Do not reduce these owners to code
+inventories, terse summaries or bare evidence links.
+
+Be extremely discerning about admission to current files. Every passage needs a
+continuing explanatory, operational or decision-changing job. An agent having
+done something, a check having passed, a recent date or an available receipt is
+not that job. Update current state in place rather than append another entry;
+remove superseded wording and unnecessary detail in the same change. Do not
+replace a long diary with an accumulating series of short completion summaries.
+Keep the full explanation that matters, without preserving incidental events as
+background merely because they once mattered.
+
+Historical records include past execution attempts, completed migration and
+qualification transcripts, superseded configurations/status, dated observations,
+receipt details and development chronology. Preserve useful evidence with its
+actual subject, source identity, conditions and proof limits. A current
+conclusion can state its support and limits and link the exact record without
+copying its execution history. When a past failure explains an enduring
+constraint, keep that explanation current and put the event's detailed record
+in history. Active recovery cursors and currently required runtime identities
+remain with their actual current operational owner while needed.
+
+Use an owning `History/` directory for separated documentation, normally
+`docs/systems/<system>/History/`, or `docs/ops/History/` for repository operations.
+Pair files where useful: `Testing.md` and `History/Testing.md`, `Status.md` and
+`History/Status.md`, or `Operations/<topic>.md` and
+`History/Operations/<topic>.md`. They contain different material, not two
+copies of the same document. Do not create empty counterparts or mirror every
+folder merely for symmetry. Existing separately owned evidence stores retain
+their purpose, custody and lifecycle; do not copy their bodies into documentation.
+
+Label separated records `doc_horizon: historical` in Markdown front matter.
+Preserve existing nonhistorical horizon distinctions: `current` for current-state
+owners and `target` or `planned` where they describe accepted design or intended
+work. Current knowledge includes these qualified active owners; it does not
+relabel target behavior as implemented. Labels express selection, not authority
+or a substitute for reading the meaning. Keep useful
+historical records discoverable through a small `History/INDEX.md` and exact
+evidence links. Root current indexes route to history as **on-demand evidence**,
+outside their read-first/default sequence; do not embed a lifetime receipt
+catalog in the current entrypoint. Preserve or reconcile exact anchors and
+consumers when moving material. Source-relative links must still resolve.
+
+Historical bodies are excluded from default/automatic context loading: startup,
+compaction recovery, handoffs, routine orientation, documentation bundles and
+general current-document searches. An agent may deliberately retrieve a specific
+historical record when the user requests history **or the current task needs that
+evidence**. Select by the actual question and read enough context to preserve its
+qualifications; following every history link or loading the whole archive is not
+required. Reuse grounded understanding instead of rereading unchanged owners.
+Current files are selected by task relevance too; `current` is not an order to
+load all current documentation. No automatic note/document injection hook is
+introduced by this rule.
+
+Maintain the separation in the ordinary owning change. Put a useful completed
+record only in its historical/evidence owner; do not create a receipt for every
+action. When changing a mixed legacy file, split its affected complete semantic
+units and preserve dependent meaning rather than adding another mixed section.
+An unfinished split remains unfinished: do not describe the remaining mixed
+file as clean current knowledge or include it wholesale in a current-only bundle.
+Recover the relevant complete current units deliberately until its separation
+is complete. This does not create an unrelated backfill campaign on every edit.
+This is not authorization to delete useful evidence, reclassify still-current
+meaning, or revive access to explicitly retired material. Git may retain
+incidental history; records with a continuing evidentiary job remain retrievable
+at their competent owner.
+
 ## Presence and indexing
 
 The following baseline applies when creating a separately owned system in an
@@ -335,8 +415,10 @@ Commercial/application documents preserve distinct purposes:
 | `misc` | A temporary bounded exception when existing roles genuinely do not fit, with that reason and a useful reconsideration trigger; not a silent permanent category. |
 
 Use these role names where they aid recognition, without imposing new metadata
-forms or mandatory documents. Mixed documents must make their different claims
-and boundaries clear. When a supplement changes accepted system meaning, update
+forms or mandatory documents. Documents combining current roles must make their
+different claims and boundaries clear; historical records remain in separate
+files under the [current/history boundary](#current-knowledge-and-historical-evidence).
+When a supplement changes accepted system meaning, update
 the actual owner; stronger wording in a supplement cannot do that silently.
 
 ## Navigation, execution plans and retention
@@ -349,8 +431,9 @@ combining or maintaining information. Applicability follows purpose and
 relationships, not exact example matching. Ordinary use requires no formal
 profile, and document navigation needs no separate relationship registry.
 
-Keep target, current, planned and historical claims distinguishable in the
-narrative. Metadata can help real consumers but does not confer authority.
+Keep target, current and planned claims distinguishable in current narrative;
+historical records belong in separate files. Metadata can help real consumers
+but does not confer authority.
 Descriptive filenames and existing canonical root names provide predictable
 routes; do not rename useful system files merely to reorganize instructions.
 

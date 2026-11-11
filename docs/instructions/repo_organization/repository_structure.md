@@ -91,6 +91,16 @@ Deployable-specific Dockerfiles belong at that deployable's
 shared infrastructure references them rather than maintaining copies. Long-form
 operating procedures belong in the system's `Operations/` or `docs/ops/`.
 
+Current documentation and historical records occupy separate files. Keep
+system-owned historical documentation under `docs/systems/<system>/History/`
+and repository operational records under `docs/ops/History/`, with useful paired
+filenames and on-demand navigation rather than duplicated bodies. Other owners
+can use their own `History/` subdirectory. Existing evidence/data stores retain
+their actual ownership and lifecycle. Follow the
+[current/history boundary](system_documentation.md#current-knowledge-and-historical-evidence)
+for full current meaning, retrieval and migration; these folders are not a reason
+to archive still-current concepts or copy separately stored evidence.
+
 ## Shared platform and infrastructure
 
 Keep implementation in its owning system until a real shared job warrants

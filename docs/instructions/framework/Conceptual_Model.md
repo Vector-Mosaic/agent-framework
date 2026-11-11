@@ -9,9 +9,9 @@
 ## Authority and design horizon
 
 This document is the primary home for the accepted conceptual meaning of the
-Agent Framework, organized by the subjects that meaning governs. The active
-pinned sketchpad is a discovery pointer only and carries no separate framework
-meaning. The domains are provisional organizational
+Agent Framework, organized by the subjects that meaning governs. Promoted
+framework meaning has no separate sketchpad copy or required discovery entry.
+The domains are provisional organizational
 boundaries rather than implementation modules, agent workflow stages,
 mandatory context bundles, or a claim that the framework is complete.
 
@@ -2086,6 +2086,23 @@ authority. Retrieval order, placement, specificity, recency, strictness, source
 count, provider identity, implementation, consensus, or presentation does not
 manufacture precedence.
 
+### Independent judgment over inherited approaches
+
+Existing work does not become a requirement merely because it is inherited.
+Preserve the intended outcome, accepted meaning and actual governing constraints
+while independently judging the approach against its purpose. Consider
+materially relevant alternatives, including approaches absent from the existing
+implementation, plan or history. Within granted discretion, retain, adapt,
+replace or begin a fresh approach on current grounds; previous adoption and
+accumulated effort do not establish correctness, continued fitness or
+superiority. A worthwhile alternative need not wait for the incumbent to fail.
+Preserve needed results, dependencies and truthful history without treating
+their preservation as an obligation to continue the method that produced them.
+When a genuinely binding decision needs changing, make the conflict explicit
+and use the authority that can revise it. This creates no preference for novelty,
+mandatory restart, exhaustive comparison or repeated justification of sound,
+still-fitting work.
+
 ### Continued fitness and renewal
 
 Continued fitness is relationship- and reliance-specific. New evidence or
@@ -2455,6 +2472,23 @@ overlap, and lifecycle boundaries. Bounded coexistence may serve different
 environments, principals, trust or isolation boundaries, consumers, targets,
 or recovery roles. Unbounded same-job duplication, silent bypass, and silent
 fallback are invalid.
+
+A requested general capability must retain its general scope in implementation.
+The first account, provider, website, project, or other example is an instance
+of that job, not permission to hardcode the capability to that instance. Reuse
+canonical records to represent identities, credentials, configuration, and
+other input differences. A different record or label alone does not justify a
+separate tool, adapter, transport, workflow, or custody owner. Account-specific
+authority constrains an invocation; it does not inherently require an
+account-specific implementation.
+
+Specialization must answer a concrete difference in required behavior,
+protocol, lifecycle, or protected boundary that ordinary inputs cannot
+adequately express. Build the simplest complete capability that serves the
+authorized scope. Neither narrowing it to the current example nor adding a
+speculative framework, adapter registry, or assurance machinery serves that
+scope merely by being implementable. Existing rejected machinery is not a
+template or a reason to repeat its design.
 
 ### Capabilities and authorized action
 
@@ -3760,6 +3794,125 @@ merge meaning. This establishes the identity-bearing unit for ownership,
 composition, change, and lifecycle classification; it creates no universal
 semantic-object taxonomy, identifier, schema, graph, registry, or version
 format.
+
+### Justin's concept for total meaning
+
+Total meaning is the complete intended substance and construction of a concept
+or body of work: its ideas, purposes, reasoning, distinctions, relationships,
+qualifications, and the cumulative way these form a coherent whole and support
+understanding.
+
+It includes what something means, why it exists, what it seeks to accomplish,
+how its reasoning works, where and how it applies, what follows from it, and
+what it excludes or leaves unresolved. It also includes how these elements
+establish, explain, constrain, qualify, and reconcile one another across the
+work.
+
+Preserving total meaning means preserving that complete substance and
+construction throughout their original intended scope, with their actual force,
+nuance, authority, qualifications, and status intact. A reader must not have to
+invent missing connections or reconstruct unrecorded conversation to recover
+them.
+
+Its connected dimensions include:
+
+- **Purpose and intent:** goals, non-goals, problems being addressed, intended
+  outcomes, and why they matter.
+- **Concepts and distinctions:** definitions, referents, assumptions,
+  neighboring concepts, and the boundaries that keep their identities and roles
+  distinct.
+- **Logic and relationships:** dependencies and their direction, participant
+  roles, conditions, composition, and connections among principles, methods,
+  goals, and consequences. Meaning may reside in a relationship or arrangement,
+  rather than in any participant considered alone.
+- **Force and applicability:** obligations, permissions, prohibitions,
+  defaults, exceptions, and distinctions such as must versus may, AND versus
+  OR, conditional versus universal, and necessary versus sufficient.
+- **Rationale and explanatory coherence:** the reasoning that makes the
+  concepts and their relationships understandable and supports faithful
+  application beyond the examples already written.
+- **Qualifications and limits:** uncertainty, evidence boundaries, nonclaims,
+  unresolved choices, ownership, authority, and temporal status.
+
+These dimensions are neither independent boxes nor an exhaustive inventory
+whose completion establishes preservation.
+
+**Cumulative construction and reconciliation are part of total meaning.** A
+concept may acquire its full significance through several passages. An earlier
+explanation may establish a foundation that later explanations depend on;
+another passage may qualify its reach, distinguish it from a neighboring idea,
+or reconcile it with a principle that otherwise appears contradictory. The
+resulting understanding belongs to the whole construction, even where no
+individual sentence states it completely.
+
+Preservation therefore includes the substantive work performed by that
+construction: how concepts are developed, how distinctions become intelligible,
+how tensions are resolved or deliberately left open, and how qualifications
+prevent false generalizations. A reconciliation must retain both the
+considerations being reconciled and the reasoning, conditions, and limits of
+their resolution. It must not be flattened into a slogan that preserves the
+conclusion while losing what makes it warranted or correctly applicable.
+
+Reconciliation can intentionally preserve conflict, tension, or coexistence. It
+need not make one position win universally. Preserve the accepted relationship:
+older and newer concepts may remain current together, with one governing under
+specified conditions and the other under different conditions; they may retain
+another deliberately accepted interaction; or the newer concept may replace the
+older completely. Preserve where and why each applies, how any overlap is
+handled or remains open, and the scope of any replacement. Neither recency nor
+a desire for uniformity supplies a missing decision. Deliberately accepted
+coexistence is distinct from an unresolved conflict, and neither may be
+silently converted into universal precedence or supersession.
+
+Older meaning that remains applicable is current meaning. Meaning that has been
+fully superseded has no continuing governing force; retaining it as historical
+evidence does not revive it.
+
+**Nuance includes differences that affect understanding even when they do not
+immediately change a particular action.** Preserving explicit rules or
+producing the same answer in familiar examples is insufficient if the
+explanation loses conceptual depth, the reasons behind its boundaries, or the
+ability to support faithful reasoning in unfamiliar situations.
+
+Organization, progression, contrasts, examples, emphasis, and repetition belong
+to the preservation target wherever they perform these substantive jobs. Their
+exact wording, sequence, or presentation may change when those contributions
+remain faithfully recoverable. Literal similarity is neither necessary nor
+sufficient.
+
+Explicit non-goals, non-examples, contrasts, exclusions, and intentionally
+drawn distinctions are part of total meaning wherever they help establish what
+a concept is, is not, seeks, does not seek, or permits. Preserve their intended
+role, scope, and force, including qualifications and the misreadings they
+prevent; do not discard them as incidental illustration or silently turn them
+into stronger or broader rules.
+
+When replacing a complete owner, preserve its whole original intended scope.
+Relevance to today's task does not determine which accepted meaning may
+survive. A derived summary may select within a faithful declared scope and
+transformation, while preserving what its claimed use requires; it does not
+thereby become a complete replacement.
+
+Preserving cumulative construction does not require retaining every historical
+draft, discussion, or development step. It requires retaining their
+still-applicable conceptual results, rationale, reconciliations, and
+explanatory contributions in the current explanation.
+
+The target is adequate support for a competent reader's understanding and
+reasoning without the originating conversation—not identical mental models or a
+guarantee of every future interpretation. Substantive comparison and varied
+applications can support bounded preservation claims; word counts, keyword
+coverage, or unexamined agreement cannot establish them.
+
+The name refers to this entire explanation. It changes neither the ownership of
+the concepts it concerns nor the authority required to revise them, and does
+not itself authorize compression.
+
+Related owners: [semantic identity](#semantic-identity),
+[relationships](Relationship_Model.md#semantic-identity-ownership-representation-and-lifecycle),
+[representation](#representation-and-controlling-meaning),
+[human maintainability](#human-maintainability), and the practical
+[semantic-preservation review](../agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md#semantic-preservation-review).
 
 ### Competent semantic ownership
 

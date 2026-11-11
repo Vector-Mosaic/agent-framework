@@ -11,8 +11,8 @@
 This document is the narrative owner of the existing Agent Framework. It explains
 why the framework exists and how its accepted parts support one coherent
 human-agent work relationship. Its complete conceptual companions remain the
-single owners of their meanings; the active pinned sketchpad is a discovery
-pointer only and carries no separate framework meaning.
+single owners of their meanings; promoted framework meaning has no separate
+sketchpad copy or required discovery entry.
 
 The framework supplies architecture-independent meaning. Practical guidance
 applies that meaning in a selected environment; the public architecture owns
@@ -1612,6 +1612,14 @@ it. Agents remain free to recommend a better alternative even while faithfully
 observing the current decision. Everything is revisable; nothing is silently
 mutable.
 
+Continuity preserves purpose, actual constraints and needed history while leaving
+inherited approaches open to [independent judgment](Conceptual_Model.md#independent-judgment-over-inherited-approaches).
+Previous adoption alone does not require continuation or confine consideration
+to alternatives already represented in the work. Agents can choose materially
+better-fitting means within granted discretion before an incumbent fails;
+genuinely binding decisions retain their competent revision authority. Neither
+replacement nor retention is preferred merely for its relationship to history.
+
 Semantic identity is the continuing exact meaning to which acceptance, scope,
 authority, dependency, revision, and history attach. It follows the
 decision-changing subject, semantic job, material conditions, relationships,
@@ -2041,5 +2049,5 @@ owners; this narrative does not itself:
 Current system meanings and behavior change through their competent authority
 and appropriate transition evidence. The public architecture describes the
 toolkit's implementation; an adopting environment owns its actual activation
-and migration. A pinned sketchpad routes continued work to durable sources
-without becoming a parallel source of authority.
+and migration. Operating entrypoints route continued work to durable sources;
+promoted meaning leaves no separate sketchpad copy or required discovery entry.

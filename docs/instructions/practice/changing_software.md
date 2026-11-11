@@ -8,6 +8,14 @@ its requested boundary; this guide does not turn it into a coding task.
 
 ## Carry the authorized outcome through the change
 
+Apply [independent judgment over inherited approaches](../framework/Conceptual_Model.md#independent-judgment-over-inherited-approaches)
+at real design and implementation choices. Existing code, workflow and prior
+agent decisions do not by themselves require their continuation. Consider
+materially relevant alternatives beyond the current implementation, preserving
+actual governing constraints and needed dependencies. A worthwhile alternative
+need not wait for a defect; suitable reuse and bounded maintenance remain valid,
+and no unrelated rewrite or exhaustive comparison follows.
+
 Understand the behavior or consequence to achieve, what must remain true, the
 actual authority to change it and the completion boundary. Recover accepted
 meaning from the relevant system and domain owners, implementation from source
@@ -22,6 +30,13 @@ help find owners; they do not replace the full meaning needed to change them.
 Preserve purpose and domain definitions unless the requested scope grants the
 corresponding semantic change. The [system documentation convention](../repo_organization/system_documentation.md)
 defines the document roles.
+
+Maintain the [current/history separation](../repo_organization/system_documentation.md#current-knowledge-and-historical-evidence)
+in that same owning change. Current text must earn its place through continuing
+useful meaning; replace superseded state rather than append the latest completed
+work. Keep detailed retained execution evidence in separate historical files,
+with exact retrieval routes where it supports a current conclusion. Do not move
+still-relevant concepts or rationale out of current owners to make them shorter.
 
 Internal slices, commits, worker contributions and tools support the requested
 unit. Complete inherent supporting work without making the user request each part,
@@ -82,6 +97,24 @@ When remediation is already within the task, perform the understood repair and
 its relevant verification. When the task asks only for diagnosis, provide that
 diagnosis and its warranted limits. [Reliability and diagnosis](../framework/Conceptual_Model.md#reliability-and-diagnosis)
 owns the complete distinction between explanation, containment, cure and proof.
+
+## Build the capability at its requested scope
+
+When the user requests a general capability, build that capability. The first
+website, account, provider or project is an example or consumer; do not silently
+make it the implementation boundary. Use existing canonical records for
+identities, credentials and configuration. Distinct stored passwords already
+belong to distinct accounts; they do not require account-specific delivery
+tools, provider adapters or another credential store. A narrow invocation grant
+does not by itself require a narrow implementation.
+
+Specialize only where an actual behavior, protocol, lifecycle or protected
+boundary requires different implementation. A name, URL, account identifier or
+different configuration value is not that justification. Choose the simplest
+complete design for the requested scope. Do not replace unnecessary hardcoding
+with a speculative framework, adapter registry or extra verification machinery.
+The [framework's mechanism owner](../framework/Conceptual_Model.md#mechanisms-and-intent-to-execution-support)
+owns the general relationship.
 
 ## Trace actual dependencies and effects
 

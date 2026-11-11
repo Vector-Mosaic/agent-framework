@@ -2,8 +2,8 @@
 
 - version: v1
 - status: current standard
-- scope: repo-wide lifecycle for exploratory design, accepted working
-  baselines, and promotion into durable narrative authority
+- scope: exploratory design, accepted working baselines and durable promotion
+  across agent work within the adopted operating scope
 - category_authority: `docs/instructions/agent_workflow/README.md`
 - enforcement_state: mixed `agent_entrypoint_mirror`, `execution_contract`,
   and `touched_surface_rule`
@@ -17,10 +17,15 @@
 
 ## Purpose
 
-This standard owns the repo-wide lifecycle for developing a concept in a
+This standard owns the lifecycle for developing a concept in a
 thread, accepting it as the current working baseline, and integrating it into
 durable repository authority without losing semantic meaning, narrative
 meaning, or narrative flow.
+
+It applies across the [adopted operating scope](../framework/README.md#adopted-operating-scope),
+including projectless discussions. Durable ownership follows the user's selected
+repository and document owners; native continuity mechanisms retain their actual
+supported runtime scope.
 
 It solves a specific failure mode:
 
@@ -73,9 +78,15 @@ or documentation hierarchy.
 
 The existing mechanisms retain these jobs:
 
-- The pinned thread sketchpad carries current thread-local intent and accepted
-  working baselines.
-- The thread to-do list carries current action order only.
+- The pinned thread sketchpad holds only ideas admitted under the
+  [content boundary](#sketchpad-content-boundary) below, including their current
+  exploratory or accepted working form.
+- The thread to-do list carries unfinished work and discussion, useful ordering,
+  dependencies and parked obligations in Now / Next / Parked. Completed items
+  and their obsolete detail are removed completely; there are no generated
+  Notes/Metadata sections, timestamped bookkeeping or completion summaries.
+  The [pinned-continuity owner](README.md#pinned-thread-continuity) defines its
+  maintenance and legacy-content reconciliation.
 - Durable docs carry accepted repository intent, target design, current truth,
   standards, policies, contracts, and operating rules under their owning
   document kinds.
@@ -93,6 +104,37 @@ Do not create another lock ledger, promotion document type, authority registry,
 or parallel concept store. If the pinned sketchpad mechanism is unavailable,
 keep the discussion exploratory and report the missing canonical mechanism; do
 not invent a substitute local-lock mechanism.
+
+### Sketchpad Content Boundary
+
+Every chat keeps its sketchpad available and pinned. Its existence does not
+require content: an empty sketchpad is a correct state. It is a workspace for
+developing ideas, not a general task-memory or operational-bookkeeping record.
+
+Put an idea there when the user asks to keep it there, or when an agent truly
+needs its current formulation, reasoning or unresolved alternatives preserved
+to keep developing or reasoning about that idea correctly. Agent-selected
+content needs that concrete purpose in the actual work; merely having a task,
+wanting a continuation summary or anticipating context loss does not establish
+it. Use judgment, not a mandatory justification field or another receipt.
+Saving an agent's idea does not make it accepted; preserve its actual proposed,
+unresolved or accepted status and the user's authority over its meaning.
+
+Maintain the admitted ideas as they develop through discussion or reasoning.
+Replace superseded wording in place and retain the distinctions and open
+questions that still matter. Necessary technical detail can express an idea;
+routine progress reports, commands, run/agent inventories, receipt/hash lists,
+completion histories and copies of policy or to-do items do not belong merely
+because they might be useful operational context. Do not add goal/status/
+return-to boilerplate to fill an otherwise empty sketchpad.
+
+After authorized, verified promotion, clear the promoted material completely
+from the sketchpad. Do not replace it with a durable-source pointer, promotion
+summary, completion entry or other residual record. Partial promotion clears
+that portion and preserves only the other admitted, still-unpromoted ideas.
+When no such idea remains, leave the pinned sketchpad empty. The
+[promotion closeout](#promotion-closeout) retains verification and the boundaries
+for failed promotion; this content rule does not authorize promotion itself.
 
 ### Parent-Outcome And Authority Conservation
 
@@ -166,7 +208,7 @@ silently merged into durable current meaning.
 
 ## Command Semantics
 
-Use these command meanings repo-wide.
+Use these command meanings across work within the adopted operating scope.
 
 ### Exploration Commands
 
@@ -290,8 +332,9 @@ change is meaning-preserving and locally coherent.
 
 ### One Current Baseline Per Concept
 
-The active sketchpad must contain one consolidated current baseline for each
-concept it governs.
+For each admitted concept, the active sketchpad keeps one current coherent
+form. An accepted lock has one consolidated current baseline; exploratory
+ideas remain visibly exploratory. A chat with no admitted idea stays empty.
 
 Do not accumulate:
 
@@ -306,8 +349,8 @@ Updated Lock
 as simultaneously active bodies.
 
 Existing authorized history retains prior versions where available; it is not a
-new backup requirement. The active sketchpad preserves the
-current reasoning state.
+new backup requirement. The active sketchpad preserves only the current form
+of its admitted, unpromoted ideas.
 
 ### Baseline Content
 
@@ -519,11 +562,15 @@ The latest clarification says...
 Delete or integrate obsolete wording after its valid meaning has a verified
 current home.
 
-Chronology may remain where chronology is the document's subject, such as an
-ADR, status history, migration record, plan, incident record, or historical
-archive. That exception does not authorize chronology inside current
-conceptual or operational explanation when the history has no current
-semantic role.
+Chronology belongs in a separate historical document when it has a continuing
+evidentiary job, such as a decision record, migration result or incident record.
+It must not share a file with current conceptual or operational explanation.
+Preserve enduring rationale, applicable constraints and qualified conclusions
+as current meaning; put the detailed event record behind an on-demand evidence
+route. A recent promotion or completed task does not justify adding a current
+completion summary. Follow the
+[current/history boundary](../repo_organization/system_documentation.md#current-knowledge-and-historical-evidence),
+including its strict admission and task-specific retrieval rules.
 
 ### Preserve Narrative Meaning
 
@@ -553,8 +600,9 @@ avoid editing the existing owner.
 
 ## Semantic Preservation Contract
 
-Semantic preservation means preserving the actual accepted meaning and force,
-including:
+Semantic preservation applies
+[Justin's concept for total meaning](../framework/Conceptual_Model.md#justins-concept-for-total-meaning):
+preserve the actual accepted meaning and force, including:
 
 - `must` versus `may`;
 - `AND` versus `OR`;
@@ -613,7 +661,7 @@ passage is newest.
 Promotion fails when any of the following remains:
 
 - an accepted obligation is missing or weakened;
-- old and new governing models remain active together;
+- fully superseded governing meaning remains active alongside its replacement;
 - narrative flow requires hidden conversation context;
 - a new assertion lacks authority;
 - an unresolved conflict was silently answered;
@@ -632,10 +680,11 @@ materially reduces omission risk.
 
 After durable promotion passes:
 
-1. Update the sketchpad baseline to a concise durable pointer or remove its
-   full promoted body.
-2. Preserve only still-active discussion, unresolved questions, and current
-   work state.
+1. Clear the successfully promoted material completely from the sketchpad,
+   including any promotion pointer, summary, completion entry or other remnant.
+2. Preserve only other admitted, still-unpromoted ideas and their necessary
+   reasoning and unresolved questions. If none remain, keep the sketchpad
+   pinned and empty; do not replace the cleared material with task bookkeeping.
 3. Update the thread to-do list to the next real action.
 4. Run the relevant docs, manifest, and repository verification.
 5. Preserve the owned change in Git; push only when the active task or standing

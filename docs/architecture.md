@@ -44,13 +44,20 @@ not a copy of the originating environment's capability or account inventory.
 
 ## Instruction delivery and continuity
 
-The renderer expands explicit installation bindings in the framework's home
-orientation kernel. Setup uses native `AGENTS.md` discovery and preserves text
+The renderer expands explicit installation bindings in the separately authored
+[home carrier](instructions/framework/Codex_Home_Guidance.md). Common practical
+guidance lives in the maintained `AGENTS.md` entrypoint and applies throughout
+the adopted scope; the framework README routes full owners without repeating the
+home body. Setup uses native `AGENTS.md` discovery and preserves text
 outside its managed section. There is no background synchronization daemon,
 conversation injection hook or patched agent runtime. See [setup](setup.md).
 
-Each task has an exact identity and its own sketchpad and to-do. Their bodies and
-registry live under the selected private state root. Here, **pinned** means pinned
+Each task has an exact identity and its own sketchpad and to-do. The sketchpad
+holds only user-requested or actually needed developing ideas; empty is valid,
+and authorized verified promotion clears those ideas completely. To-do contains
+only unfinished Now / Next / Parked work and discussions. These are current
+working surfaces, not operational diaries or completion archives. Their bodies
+and registry live under the selected private state root. Here, **pinned** means pinned
 in the toolkit's registry, not in the Codex sidebar. The instructions tell the
 agent to check and read them. The tool does not make an otherwise unavailable
 task identity magically discoverable and does not write Codex's conversation

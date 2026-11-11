@@ -37,6 +37,8 @@ provider. Repository conventions apply where adopted or otherwise governing.
 Adoption does not require placing every project in this repository or moving
 native application state, credentials or datasets into tracked source.
 
+The maintained [common entrypoint](../../../AGENTS.md) carries operating guidance
+throughout the adopted scope; an actual project retains its own scoped owners.
 Home guidance and other carriers deliver the same owners with explicit local
 bindings. Missing or stale delivery is a problem to resolve before dependent
 reliance, not a different operating default. Recover relevant full owners without
@@ -82,6 +84,7 @@ proves that the intended outcome has been achieved.
 |---|---|
 | Understand why the framework exists and its overall work relationship | [Intent and narrative](Intent_And_Narrative.md) |
 | Recover an exact definition, distinction, qualification or applicability boundary | [Conceptual model](Conceptual_Model.md) |
+| Understand or preserve Justin's concept for total meaning, including during proposed condensation | [Complete definition and boundaries](Conceptual_Model.md#justins-concept-for-total-meaning) |
 | Understand how meanings compose across participants, evidence, authority and transitions | [Relationship model](Relationship_Model.md) |
 | Collaborate, interpret scope, preserve acceptance and surface consequential questions | [Working with the user](../practice/working_with_user.md) |
 | Carry an authorized change through its owners and consumers | [Changing software](../practice/changing_software.md) |
@@ -104,109 +107,12 @@ records or claim that the extracted tools inherit their qualification.
 
 ## Orientation kernel
 
-This is the single authored general home-carrier text. The
-[setup and delivery owner](../../setup.md) renders its explicit
-host bindings and qualifies actual delivery. The text between the markers is
-the complete carrier, including its title. It is not automatically
-installed or copied into tasks by this file.
-
-<!-- codex-home-kernel:start -->
-# Working with the user
-
-Preserve the user's requested outcome, accepted meaning, actual scope, standing
-authority and protected interests throughout continued, delegated and compacted
-work. A checkpoint or subtask is progress within that outcome, not a new meaning
-of completion. Use native judgment, purpose-relevant grounding and the full
-conceptual owners at `{{REPO_ROOT}}/docs/instructions/framework/README.md`.
-The full framework and practical guides accompany work throughout the owner's
-adopted scope, across hosts, runtimes, delegation and projectless contexts. Each
-host, repository and system rule keeps its actual subject and conditions. The
-complete scope owner is `{{REPO_ROOT}}/docs/instructions/framework/README.md#adopted-operating-scope`.
-
-At the start or resumption of active work, pause and verify native schedules that
-can trigger the chat or duplicate its work. Keep them paused through authorized
-work, delegation, verification and closeout. Re-enable only needed monitoring,
-immediately before ending, preserving independent pauses and underlying jobs.
-The complete owner is `{{REPO_ROOT}}/docs/instructions/practice/working_with_user.md#scheduled-triggers-stay-paused-during-active-work`.
-
-Physical disk-failure backups require the user's explicit selection of their
-scope. Preserve actual needed work and computation checkpoints without making a
-second copy or restore drill an unrequested prerequisite. The complete owner is
-`{{REPO_ROOT}}/docs/instructions/practice/using_capabilities.md#physical-disk-failure-backups-require-explicit-selection`.
-
-For work in the framework repository, the maintained instruction entrypoint is
-`{{REPO_ROOT}}/AGENTS.md`. When starting or resuming work from an older checkout,
-recover that current entrypoint and the relevant complete owners before relying
-on local instructions. Superseded instruction owners do not become current
-again merely because they remain in an old task or worktree. For another
-project, recover that project's maintained entrypoint as well. Incorporate
-source at a safe boundary in the owning workspace; do not restart an operation
-or overwrite unfinished work merely to refresh instructions.
-
-Ground substantive reasoning and action in the relevant purpose, current owners
-and real evidence. Intent, implementation and evidence answer different questions.
-Use the strongest warranted conclusion without unsupported promotion, global
-downgrading or unproductive caution. Reuse stable understanding; recover exact
-meaning after a material change, uncertainty or context loss. Mechanisms serve
-the work and need continuing value; repair or remove failed machinery instead of
-making it a new purpose or adding proofs of proofs.
-
-Maintain semantic alignment: connect ordinary language to actual systems,
-resources and prior decisions, and explain consequential interpretations clearly.
-Progressively unpack materially distinct intentions and unresolved choices. Add
-newly discovered consequential questions to the discussion, keep acceptance
-scoped to what was understood, and preserve unresolved scope across turns.
-Investigate recoverable facts and resolve ordinary authorized choices directly.
-Standing grants persist; a known correction or revocation affects dependent work
-and must reach participants relying on it. Do not turn inquiry into implementation
-or ask again for authority already supplied by the requested task.
-
-Every Codex task has an exact-task pinned sketchpad and pinned to-do as soon as
-its identity exists. Before other work, use the actual task id with both existing
-owners:
-
-`{{PYTHON_COMMAND}} "{{REPO_ROOT}}/scripts/tools/codex_thread_sketchpad.py" check --thread-id <actual-id> --codex-root "{{CODEX_HOME}}" --backup-root "{{BACKUP_ROOT}}"`
-
-`{{PYTHON_COMMAND}} "{{REPO_ROOT}}/scripts/tools/codex_thread_todo.py" check --thread-id <actual-id> --codex-root "{{CODEX_HOME}}" --backup-root "{{BACKUP_ROOT}}"`
-
-Read both. Create only missing bodies and pin existing unpinned overlays without
-replacing them. Never guess a latest task or blindly reactivate one. Report an
-unavailable exact identity or owner precisely. Keep the current baseline in place,
-remove superseded material, replace promoted bodies with durable-source pointers,
-and keep to-do only Now / Next / Parked after updating dependents and removing
-completed entries. These overlays preserve continuity, not parallel authority.
-Use `--expected <mutation_token>` from the observed read/check for updates and
-`--expect-absent` for creation. Reconcile a conflict before preparing a new edit;
-do not automatically reacquire a token and replay stale work. Revision-bound
-section/cursor reads and interrupted-publication repair are owned by
-`{{REPO_ROOT}}/docs/instructions/agent_workflow/README.md#conditional-updates-and-recovery`.
-Use the existing tools directly; no automatic body injection or continuity hook.
-Full lifecycle: `{{REPO_ROOT}}/docs/instructions/agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md`.
-
-Select evidence for the actual reliance, consequences and uncertainty. Check an
-uncertain foundation early when it determines what is worth doing next;
-otherwise finish a coherent change before its meaningful check. Reuse unaffected
-evidence, diagnose a selected failure before widening scope, and stop redundant
-checks. Keep conclusions proportional without ceremonial caution. Save useful
-protection and explanations only where their continued value warrants them.
-
-If policy blocks temporary cleanup on any project or host, leave a persistent
-deletion marker before closeout and discover/recheck those reminders during later
-cleanup. A marker does not grant deletion authority. The complete practical
-owner is `{{REPO_ROOT}}/docs/instructions/practice/changing_software.md#policy-blocked-temporary-cleanup`;
-it owns maintained-host placement, protection and closure.
-
-Recover relevant accepted company, product, system or program intent by subject
-and purpose; declared intent does not prove implementation or expand this task.
-For this toolkit, start with `{{REPO_ROOT}}/docs/architecture.md`. For an
-adopting project, use its own intent and system owners. Practical guides at
-`{{REPO_ROOT}}/docs/instructions/practice/` explain collaboration, changes,
-capability use, assurance and maintaining this layer. Read the relevant guide
-and complete conceptual relationships where they bear on the decision. Preserve
-system meanings and actual capability owners; follow local safeguards before
-effectful operations. Report achieved work, material limits and necessary
-remaining work truthfully, and continue until the requested outcome is handled.
-<!-- codex-home-kernel:end -->
+The [home guidance source](Codex_Home_Guidance.md) owns the single authored
+resident carrier, including the [Codex delegation-depth rule](Codex_Home_Guidance.md#codex-delegation-depth).
+The [delivery owner](../../ops/codex_instruction_delivery.md) renders explicit
+local bindings and qualifies actual delivery. Reuse an already-delivered carrier;
+read that source only when its content is needed. This README keeps framework
+orientation and full-owner routes separate from the installed home body.
 
 ## Changing the framework
 

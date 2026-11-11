@@ -61,6 +61,10 @@ the narrative needed to understand why the concepts fit together, not just a
 table of isolated labels. Updating every link establishes routing, not semantic
 equivalence or completeness.
 
+[Justin's concept for total meaning](../framework/Conceptual_Model.md#justins-concept-for-total-meaning)
+owns the complete preservation target, including the original intended scope
+when condensing an owner rather than deriving a task-specific summary.
+
 Remove superseded formulations rather than leave readers to reconstruct which
 version wins. A short relocation pointer can route history when needed, but must
 not become another maintained definition. Before deleting a source, establish
@@ -102,6 +106,14 @@ establish inapplicability. Ordinary use needs no formal profile. Keep controllin
 meaning with its owner and distinguish derived navigation from that meaning.
 
 ## Make the layer usable in actual contexts
+
+Apply the [current/history boundary](../repo_organization/system_documentation.md#current-knowledge-and-historical-evidence)
+to the instruction layer itself. Current owners explain the accepted rule and
+its useful rationale; installation transcripts, superseded rules and detailed
+qualification observations belong in separate historical files. Default entry
+and recovery routes must not load those bodies. Preserve access to specific
+evidence when needed without turning every future context into a replay of how
+the layer was built.
 
 Instruction delivery must provide the framework's small continuously available
 orientation and a trustworthy route to full relevant meaning. Native startup,
@@ -167,10 +179,11 @@ The [lock and promotion lifecycle](../agent_workflow/concept_lock_lifecycle_and_
 owns thread baselines and durable integration. Preserve exact selected text and
 annotation qualifications. A lock does not authorize promotion or action by
 itself; authorized promotion integrates a coherent accepted slice into its owner,
-reconciles affected explanations and replaces the overlay duplicate with a
-pointer. Update dependent to-do items and remove completed material in the same
-maintenance pass. Do not build a parallel ledger or append a history of locks to
-current authority.
+reconciles affected explanations and clears the promoted sketchpad material
+completely, without a pointer, summary or completion entry. Other admitted
+unpromoted ideas retain their own scope. Update dependent to-do items and remove
+completed material in the same maintenance pass. Do not build a parallel ledger
+or append a history of locks to current authority.
 
 Use real work to notice missing guidance, misleading examples, obsolete
 assumptions and needless burden. Investigate the exact problem and improve its

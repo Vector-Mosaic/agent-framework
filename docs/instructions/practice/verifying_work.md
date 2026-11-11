@@ -104,8 +104,9 @@ through the actual operator-facing route shows meaningful progress within every
 potentially long phase, available evidence supports a credible judgment of
 remaining work and practical completion at the intended scale, and interruption
 and recovery preserve completed work within a justified replay bound. Apply this
-repository-wide requirement whenever foreseeable duration, resource commitment
-or downtime is substantial, including aggregate repeated work. Database/index
+requirement across work within the [adopted operating scope](../framework/README.md#adopted-operating-scope)
+whenever foreseeable duration, resource commitment or downtime is substantial,
+including aggregate repeated work. Database/index
 rebuilds, reindexing, bulk conversions, history reconstruction, audits, imports
 and large computations are examples, not the boundary. Staging, prototypes,
 qualification and operations called ordinary saves are not exemptions.
@@ -227,9 +228,12 @@ automatically.
 ### Preserve bounded work across interruption
 
 Before launch, establish what survives loss of the observer connection, process
-termination and the relevant host/storage failure conditions. Reconnecting to a
-still-running process is not restarting a terminated one. Protecting the original
-data, observing progress and preserving completed computation are separate jobs.
+termination and the interruption conditions relevant to the authorized job.
+Reconnecting to a still-running process is not restarting a terminated one.
+Physical disk-failure survival is not a default condition or a backup prerequisite;
+it belongs only to the [user's explicitly selected scope](using_capabilities.md#physical-disk-failure-backups-require-explicit-selection).
+Preserving actual original data, observing progress and retaining completed
+computation for resume are separate jobs.
 Report the last validated durable recovery point, the work still at risk since
 it, and the expected cost of recovery/replay. Choose and justify checkpoint or
 restart-unit bounds against the intended scale, failure exposure and operational
@@ -266,9 +270,12 @@ starting or restarting the substantial operation; do not launch on a promise to
 add these afterward.
 Reuse passing evidence only while implementation, phases, workload shape/scale,
 capacity/concurrency, recovery format and delivery route remain applicable; changes affecting
-them require the affected checks again. Retain the useful result and limits in
-existing system Testing/Operations owners, not a new monitoring framework or
-per-run bureaucracy.
+them require the affected checks again. Keep current interpretation and limits
+in the fitting Testing/Operations owner; preserve useful execution records in
+separate historical evidence files with exact routes under the
+[current/history boundary](../repo_organization/system_documentation.md#current-knowledge-and-historical-evidence).
+Do not append completed-run bookkeeping to current guidance or create a new
+monitoring framework or per-run bureaucracy.
 Keep diagnostic overhead bounded and protect sensitive data, transaction
 semantics and the primary result. If opacity, impractical scaling or unbounded
 loss on interruption is discovered during a run, surface that limitation and its

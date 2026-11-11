@@ -732,7 +732,7 @@ def add_navigation_options(parser: argparse.ArgumentParser) -> None:
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--section-ref", help="Exact occurrence reference returned by outline for this source/view revision.")
     selection.add_argument("--cursor", help="Continue the same captured selection/view; stale source is rejected.")
-    parser.add_argument("--context", choices=("include", "references"), default="include", help="Section context: preamble and ancestor introductory text, or references only; cursors retain their original mode.")
+    parser.add_argument("--context", choices=("include", "references"), default="include", help="Include preamble and ancestor introductory text by default. Use references when that context is already retained at the same revision; continuation cursors retain the initial mode.")
     parser.add_argument("--max-chars", type=positive_int, help="Bound the delivered selection in Unicode characters; omit for the full selection.")
     parser.add_argument("--expected-source", help="Require the exact source revision emitted by an earlier check; never splice changed bytes.")
 
@@ -891,11 +891,55 @@ def bounded_check_excerpt(
     }
 
 
+def _readback_text_fields(payload: dict[str, Any]) -> dict[str, Any]:
+    """Present one useful readback without changing the structured contract."""
+    if payload.get("action") not in {"check", "read", "status"} or "source" not in payload:
+        return payload
+    result = {key: payload[key] for key in
+              ("action", "thread_id", "matched_by", "exists", "pinned", "active", "consistency")
+              if key in payload}
+    if payload.get("thread_name"):
+        result["thread_name"] = payload["thread_name"]
+    # The absolute body path supplies its store/document binding without
+    # repeating it in top-level paths and routine registry metadata as well.
+    result["source"] = {key: payload["source"][key]
+                        for key in ("codex_root", "path", "revision", "bytes")}
+    if "view" in payload:
+        result["view"] = payload["view"]
+    result["mutation_token"] = payload["mutation_token"]
+    if payload["consistency"] not in {"consistent", "absent"}:
+        result["metadata"] = payload["metadata"]
+    if "excerpt_meta" in payload:
+        meta = payload["excerpt_meta"]
+        result["excerpt_meta"] = {key: meta[key] for key in
+                                  ("mode", "range", "total_chars", "total_lines", "truncated",
+                                   "truncated_before", "truncated_after")}
+        # A complete check already delivered the body. Partial checks offer
+        # the next window, or full reacquisition for an explicitly selected
+        # tail. A final offset window must not prompt rereading earlier pages.
+        commands = meta["commands"]
+        if commands["next"]:
+            result["next"] = commands["next"]
+        elif meta["truncated"] and meta["mode"] == "tail":
+            result["full"] = commands["full"]
+        result["excerpt"] = payload["excerpt"]
+    for key in ("parser_revision", "parser_support", "selection", "delivered"):
+        if key in payload:
+            result[key] = payload[key]
+    if payload.get("context"):
+        result["context"] = payload["context"]
+    if payload.get("next_cursor"):
+        result["next_cursor"] = payload["next_cursor"]
+    if "body" in payload:
+        result["body"] = payload["body"]
+    return result
+
+
 def emit_kv(payload: dict[str, Any], *, as_json: bool) -> None:
     if as_json:
         print(json.dumps(payload, indent=2, sort_keys=True))
         return
-    for key, value in payload.items():
+    for key, value in _readback_text_fields(payload).items():
         if isinstance(value, (dict, list)):
             print(f"{key}: {json.dumps(value, sort_keys=True)}")
         else:

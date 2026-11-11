@@ -17,8 +17,8 @@ and support boundary; the [practical guides](../README.md) apply the concepts.
 Each adopting environment retains its own accepted application purposes,
 preservation decisions, migration authority and remaining design questions.
 
-This document is the relational owner of the Agent Framework. The active pinned
-sketchpad is a discovery pointer only and carries no separate framework meaning.
+This document is the relational owner of the Agent Framework. Promoted framework
+meaning has no separate sketchpad copy or required discovery entry.
 These relationships govern how accepted concepts compose; they are not
 implementation proof, an execution workflow or a selected architecture.
 Practical guides and entrypoints apply them without silently changing system,
@@ -258,6 +258,15 @@ eligible transition or use of resources. Materially different choices whose
 outcome, commitment, exposure, cost, or duration exceeds entrusted judgment
 retain their exact clarification or authority boundary rather than being
 silently selected.
+
+An inherited approach relates to the purpose through its current fitness, not
+through an obligation created by prior use. [Independent judgment over inherited
+approaches](Conceptual_Model.md#independent-judgment-over-inherited-approaches)
+keeps materially relevant alternatives available within entrusted discretion.
+Preserving a result, dependency or truthful history does not require preserving
+the method that produced it; any genuinely binding choice retains its actual
+authority and revision relationship. Sound, still-fitting work remains reusable
+without repeated justification.
 
 A supporting mechanism or contribution bears on the work through a credible
 bounded causal or epistemic relationship to the governing purpose or another

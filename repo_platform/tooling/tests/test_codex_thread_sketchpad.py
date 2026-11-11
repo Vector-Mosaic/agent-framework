@@ -29,6 +29,7 @@ def _run_tool(
     codex_root: Path,
     backup_root: Path,
     *args: str,
+    input_text: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     for key in ("CODEX_THREAD_ID", "CODEX_THREAD_UUID", "OPENAI_CODEX_THREAD_ID"):
@@ -44,6 +45,7 @@ def _run_tool(
             *args,
         ],
         cwd=REPO_ROOT,
+        input=input_text,
         text=True,
         capture_output=True,
         check=False,
@@ -87,6 +89,94 @@ def _activate(codex_root: Path, backup_root: Path, body: str) -> Path:
     )
     assert activated.returncode == 0, activated.stderr
     return backup_root / "thread_sketchpads" / THREAD_ID / "sketchpad.md"
+
+
+def test_activate_empty_body_stays_empty_and_pinned(tmp_path: Path) -> None:
+    for input_mode in ("default", "text", "stdin", "file"):
+        _check_empty_activation(tmp_path / input_mode, input_mode)
+
+
+def _check_empty_activation(tmp_path: Path, input_mode: str) -> None:
+    codex_root = tmp_path / ".codex"
+    backup_root = tmp_path / "FrameworkState"
+    _write_session_index(codex_root)
+    empty_file = tmp_path / "empty.md"
+    empty_file.write_text("", encoding="utf-8")
+    body_args = {
+        "default": (),
+        "text": ("--text", ""),
+        "stdin": ("--stdin",),
+        "file": ("--body-file", str(empty_file)),
+    }[input_mode]
+
+    activated = _run_tool(codex_root, backup_root, "activate", "--thread-id", THREAD_ID,
+                          "--expect-absent", "--json", *body_args, input_text="")
+    assert activated.returncode == 0, activated.stderr
+    sketchpad_path = backup_root / "thread_sketchpads" / THREAD_ID / "sketchpad.md"
+    assert sketchpad_path.read_bytes() == b""
+
+    for verb, content_key in (("read", "body"), ("check", "excerpt")):
+        result = _run_tool(codex_root, backup_root, verb, "--thread-id", THREAD_ID, "--json")
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        assert payload["active"] is True
+        assert payload["pinned"] is True
+        assert payload["consistency"] == "consistent"
+        assert payload["source"]["bytes"] == 0
+        assert payload[content_key] == ""
+
+
+def test_activate_without_ideas_preserves_existing_body(tmp_path: Path) -> None:
+    for index, body_args in enumerate(((), ("--text", ""))):
+        _check_preserving_activation(tmp_path / str(index), body_args)
+
+
+def _check_preserving_activation(tmp_path: Path, body_args: tuple[str, ...]) -> None:
+    codex_root = tmp_path / ".codex"
+    backup_root = tmp_path / "FrameworkState"
+    _write_session_index(codex_root)
+    body = "An unresolved idea the user asked to retain.\n"
+    sketchpad_path = _activate(codex_root, backup_root, body)
+    original_bytes = sketchpad_path.read_bytes()
+    unpinned = _run_tool(codex_root, backup_root, "unpin", "--thread-id", THREAD_ID,
+                         *_observed_basis(codex_root, backup_root))
+    assert unpinned.returncode == 0, unpinned.stderr
+
+    activated = _run_tool(codex_root, backup_root, "activate", "--thread-id", THREAD_ID,
+                          *_observed_basis(codex_root, backup_root), "--json", *body_args)
+    assert activated.returncode == 0, activated.stderr
+    assert json.loads(activated.stdout)["metadata"]["pinned"] is True
+    assert sketchpad_path.read_bytes() == original_bytes
+
+
+def test_explicit_ideas_replace_body_and_write_can_clear_it(tmp_path: Path) -> None:
+    codex_root = tmp_path / ".codex"
+    backup_root = tmp_path / "FrameworkState"
+    _write_session_index(codex_root)
+    sketchpad_path = _activate(codex_root, backup_root, "Initial idea.\n")
+    replacement = "# Open idea\n\nKeep both alternatives unresolved.\n"
+    activated = _run_tool(codex_root, backup_root, "activate", "--thread-id", THREAD_ID,
+                          *_observed_basis(codex_root, backup_root), "--text", replacement)
+    assert activated.returncode == 0, activated.stderr
+    assert sketchpad_path.read_text(encoding="utf-8") == replacement
+
+    cleared = _run_tool(codex_root, backup_root, "write", "--thread-id", THREAD_ID,
+                        *_observed_basis(codex_root, backup_root), "--text", "", "--json")
+    assert cleared.returncode == 0, cleared.stderr
+    assert sketchpad_path.read_bytes() == b""
+    assert json.loads(cleared.stdout)["metadata"]["pinned"] is True
+
+
+def test_legacy_options_keep_only_supplied_ideas(tmp_path: Path) -> None:
+    codex_root = tmp_path / ".codex"
+    backup_root = tmp_path / "FrameworkState"
+    _write_session_index(codex_root)
+    activated = _run_tool(codex_root, backup_root, "activate", "--thread-id", THREAD_ID,
+                          "--expect-absent", "--main-goal", "A selected idea.",
+                          "--non-goal", "Its unresolved boundary.")
+    assert activated.returncode == 0, activated.stderr
+    sketchpad_path = backup_root / "thread_sketchpads" / THREAD_ID / "sketchpad.md"
+    assert sketchpad_path.read_text(encoding="utf-8") == "A selected idea.\n\nIts unresolved boundary.\n"
 
 
 def test_check_reports_head_offset_tail_and_full_read(tmp_path: Path) -> None:

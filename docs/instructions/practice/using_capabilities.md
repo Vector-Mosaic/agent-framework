@@ -49,6 +49,53 @@ Existing-account reuse, provider requirements and new spending or access changes
 retain their actual authority. This repository grants no account-administration
 permissions and carries no inherited account selection.
 
+## Retrieve useful context without replaying it
+
+Across all workflows, use context to preserve the full understanding needed for
+the work: framework meaning, system purpose and concepts, rationale, methods,
+constraints, relevant evidence, the user's corrections and unfinished discussion.
+Document length is not itself waste. Read complete relevant explanations and
+their decision-changing relationships; no token quota or fixed number of reads
+substitutes for adequate understanding.
+
+Reuse complete current material already supplied by native instructions, a tool
+or the conversation while its meaning remains adequately retained. First
+acquisition, material source change, uncertainty or actual context loss can
+require recovery. A new turn, delegation or compaction alone does not require
+replaying all startup reads. Recover the affected meaning from its competent
+owner, including substantive documentation when a summary no longer suffices.
+References route recovery; they do not replace necessary understanding. Keep
+historical bodies outside default loading under the existing current/history
+rule.
+
+Discover capabilities by the actual job or known name. Return enough candidates
+to select a fitting route, then obtain the complete contract for selected tools.
+Avoid namespace-wide catalogs and repeated descriptions when narrower discovery
+answers the question. Inspect structured results before displaying them: present
+the useful fields once, retaining errors, completeness, source identity and
+qualifications needed to interpret them. Do not print equivalent text, structured
+content, search highlights and enclosing metadata as multiple copies. Keep full
+results retrievable when needed; output selection must not hide a failure or
+remove decision-changing detail.
+
+Plan output for the entire enclosing call as well as each subprocess. Split
+large necessary owner reads into coherent sections with needed context, rather
+than request a batch that will be clipped. When output is truncated, recover the
+missing relevant portion and disclose incomplete coverage; do not repeat the
+whole prefix unless its meaning was also lost. Use targeted status or progress
+readback for the actual participant or operation instead of repeatedly listing
+completed work across an entire chat tree. New progress and necessary live
+observations retain their actual jobs.
+
+Continuation and delegation preserve the requested outcome, accepted decisions,
+authority, constraints, needed current understanding, active work and unresolved
+questions. Avoid copying complete document bodies, completed-operation diaries
+or already available tool results merely to fill a handoff. Select inherited
+history when the contribution needs it, and a self-contained brief with exact
+owner routes when that preserves the needed understanding. This introduces no
+new summary file, context ledger, automatic loader or compaction hook, and does
+not change native compaction settings.
+
 ## Establish what matters to this use
 
 A capability can be installed, configured, reachable, authenticated, authorized,

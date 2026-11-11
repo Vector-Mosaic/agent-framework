@@ -122,24 +122,43 @@ These distinctions prevent both silent expansion and unnecessary approval loops.
 ## Maintain one current understanding
 
 Use the existing pinned sketchpad and pinned to-do with the actual task identity.
-Check, recover and read both before continuing; create only missing bodies and
+On first acquisition, check and read both; create only missing bodies and
 pin existing unpinned overlays without replacing their contents. The maintained
 tools are `scripts/tools/codex_thread_sketchpad.py` and
 `scripts/tools/codex_thread_todo.py`. Use their `check` operation and exact task
 identity; do not choose a guessed latest task or invent another memory mechanism.
+An already delivered complete body, including a complete `check` excerpt,
+counts as read. Reuse it while its meaning and freshness remain adequate. A new
+turn or compaction does not by itself require another check or body read. When
+content was lost, changed or is materially uncertain, recover the affected
+record; when only freshness or pin state is in question, use exact-task `status`
+and recover changed content as needed. Preserve observed-token conditional
+updates and reconcile conflicts. The [continuity owner](../agent_workflow/README.md#revision-bound-reads-and-conditional-updates)
+defines completeness, revisions and continuation.
 
-The sketchpad holds the current unpromoted baseline and materially useful
-unresolved context. The to-do contains only Now, Next and Parked. On meaningful
-updates, consolidate the current baseline, update dependent actions and remove
-completed or superseded material in the same pass. Keep standing grants,
-qualifications, earned work and necessary remaining work recoverable, without
-turning either overlay into a transcript.
+The sketchpad is for ideas the user asks to keep there or ideas an agent truly
+needs for continued development or reasoning, as defined by its
+[content boundary](../agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md#sketchpad-content-boundary).
+Having one in every chat does not require filling it: empty is valid. Do not
+use it for operational bookkeeping or a generic continuation summary. Maintain
+the current form of admitted ideas and distinguish proposed from accepted meaning.
+The to-do contains only Now, Next and Parked unfinished work and discussion.
+Keep necessary detail with the remaining work. Empty sections are valid; do not
+add Notes/Metadata sections, timestamped bookkeeping or completion summaries.
+Update the fitting record when its meaning changes, reconcile dependencies and
+remove completed items and their obsolete detail completely in the same pass.
+Reconcile substantive legacy content through the
+[pinned-continuity owner](../agent_workflow/README.md#pinned-thread-continuity)
+without losing unfinished work. Keep actual authority and necessary work
+recoverable without making them automatic sketchpad entries.
 
 When the user says "locked", consolidate the exact accepted scope under the
 [lock and promotion owner](../agent_workflow/concept_lock_lifecycle_and_promotion_standard_v1.md).
 Locking does not itself promote or execute. When promotion is authorized,
 integrate the complete accepted meaning into its durable narrative owner and
-replace the overlay duplicate with a concise pointer. Promotion increases
+clear the promoted sketchpad material completely, with no pointer, summary or
+completion entry left behind. Retain other admitted unpromoted ideas; otherwise
+leave the pinned sketchpad empty. Promotion increases
 durability, not authority level. Open companion decisions remain open.
 
 After material context loss, recover the parent purpose, current boundaries,
@@ -147,8 +166,18 @@ accepted meaning, actual state and necessary frontier before dependent work.
 Renew only affected grounding when sources or conditions change; stable adequate
 knowledge does not need rereading on every turn. A short summary can route to
 detail, but must not silently replace decision-changing qualifications.
+Current native instructions count as delivered guidance; recover a missing or
+materially stale owner rather than replay the startup reading sequence. Preserve
+full useful purpose, concepts, rationale, methods, constraints and unresolved
+user intent. If these were lost in a summary, recover the complete relevant
+explanation before relying on it. Apply [context and output selection](using_capabilities.md#retrieve-useful-context-without-replaying-it)
+across discussion, implementation, operations, delegation and recovery.
 
 ## Delegate and finish the actual unit
+
+Codex work follows the [global delegation-depth rule](../framework/Codex_Home_Guidance.md#codex-delegation-depth)
+in the resident orientation; use that one owner rather than a project- or
+account-specific copy of the policy.
 
 Give a worker a bounded contribution with sufficient purpose, authority,
 constraints, sources, dependencies, expected evidence and stopping meaning. The

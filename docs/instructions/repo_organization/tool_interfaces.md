@@ -196,6 +196,14 @@ temporary/output locations and [artifact placement](repository_structure.md#work
 protect secrets and retain enough information to diagnose the real effect.
 Output truncation must not turn an unknown result into success.
 
+Default agent-facing readback should present the useful result and its essential
+source, completeness, failure and continuation information once. Keep complete
+structured interfaces for actual consumers, but avoid redundant metadata or
+equivalent text/JSON bodies in ordinary display. Advertise continuation when
+content remains unread; a complete result should not prompt another identical
+read. Callers size the enclosing batch as well as each operation and recover
+missing portions under [context and output selection](../practice/using_capabilities.md#retrieve-useful-context-without-replaying-it).
+
 Improve a touched tool and shared renderers where that solves a real usability
 problem. Preserve current entrypoint, argument/result semantics and system
 security boundaries unless the authorized change handles actual consumers.

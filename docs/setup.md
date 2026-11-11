@@ -95,9 +95,10 @@ stop the operation so your work is not overwritten. See the
 [delivery procedure](ops/codex_instruction_delivery.md) for recovery details.
 
 Start a fresh task in the intended client and confirm it loads the selected home
-instructions and the repository's `AGENTS.md`. The installed continuity commands
-bind the actual interpreter used for installation (including a virtual environment),
-using PowerShell syntax on Windows and POSIX shell syntax on Linux. File installation alone does not
+instructions and the common `AGENTS.md` entrypoint. Home guidance records the
+actual interpreter used for installation (including a virtual environment),
+using PowerShell invocation syntax on Windows and POSIX shell quoting on Linux.
+Use that binding for the continuity commands in the common entrypoint. File installation alone does not
 prove native instruction loading or model behavior. No hook, automatic message
 injection or Codex database modification is installed.
 
@@ -121,13 +122,24 @@ python scripts/tools/codex_thread_sketchpad.py check --thread-id 11111111-1111-4
 python scripts/tools/codex_thread_todo.py check --thread-id 11111111-1111-4111-8111-111111111111
 ```
 
-Read existing records. If both body and metadata are absent, write the intended
-body and pin it using `write --expect-absent --body-file <file> --pin`, or
+On first acquisition, read existing records; a complete already-delivered body
+or check excerpt satisfies that read. Reuse retained current understanding and
+recover only missing or changed content. If both body and metadata are absent,
+`activate --expect-absent` creates and pins an empty sketchpad or an empty
+Now / Next / Parked to-do. An explicitly intended body may instead be supplied
+with `write --expect-absent --body-file <file> --pin` or
 `write --expect-absent --stdin --pin`. For existing records, use the observed
 `mutation_token` as `--expected <token>` on every mutation. To pin an existing
 body, `pin --thread-id <id> --expected <token>` preserves its contents. A to-do body should contain
-`## Now`, `## Next` and `## Parked`; completed items belong in the durable result,
-not a running completion diary. `usage --format json` lists the editing commands.
+`## Now`, `## Next` and `## Parked`, containing only unfinished work and
+discussions. Remove completed items and obsolete detail after updating remaining
+dependents. Generated Notes/Metadata and completion bookkeeping do not belong.
+Keep the sketchpad empty unless the user asks to retain an idea or it is actually
+needed for continued development or reasoning. After authorized verified promotion,
+clear the promoted material completely, including pointers and completion remnants.
+`usage --format json` lists the editing commands. To-do append is retired; use a
+coherent write or the action commands. Useful unfinished legacy material must be
+reconciled before normalization, never silently discarded.
 For example, after observing one exact task with `check --format json`:
 
 ```text
@@ -155,7 +167,8 @@ metadata and registry files under the chosen continuity storage, not part of
 application conversation state. Document locking and revision checks protect
 participating tools from applying stale prepared edits; registry locking also
 protects independent task entries. Reads carry identity and coverage with the
-body and may create lock files. Use JSON's `body` field for a body-only consumer.
+body and may create lock files. Default text readback is concise; select needed
+JSON fields rather than printing an entire envelope beside the same body.
 Older copied tools and arbitrary editors do not acquire these locks; finish their
 use before upgrading. This remains task-owned continuity, not a shared editor.
 

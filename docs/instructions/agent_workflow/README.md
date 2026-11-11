@@ -19,8 +19,9 @@ workflow record is required.
 
 Every Codex task has one pinned sketchpad and one pinned to-do as soon as its
 actual task identity exists, before other work. This includes small, conversational
-and infrequently used tasks. Keep both pinned; minimal truthful content suffices,
-and neither light use nor completion is a reason to unpin them.
+and infrequently used tasks. Keep both pinned. Presence does not require content:
+a sketchpad with no admitted idea stays empty, including after its last idea is
+promoted. Neither light use nor completion is a reason to unpin either overlay.
 
 Use the existing tools with the actual identity:
 
@@ -35,31 +36,56 @@ task. Resume reconciles the existing pair rather than initializing a replacement
 An unavailable exact identity, tool or storage owner is reported specifically;
 do not invent a parallel memory or local-lock mechanism.
 
-Read both before continuing. The sketchpad contains the current accepted
-unpromoted baseline, relevant reasoning/context and unresolved meaning. The to-do
-contains only Now / Next / Parked. Update when the user asks, when goal/reasoning
-materially changes or when action ordering/parking changes. Rewrite the current
-baseline in place: remove superseded material with no continuing explanatory
-value, update dependent actions and then remove completed ones. Complete this
-maintenance in the same update, not a future cleanup task. Do not append a
-competing version or retain a completion transcript.
+Read both on first acquisition or when their needed content was lost or changed.
+A complete `check` excerpt counts as the body read; do not follow it with `read`
+solely because both command names appear in guidance. Reuse adequately retained
+content across turns and compaction. A known unchanged revision with retained
+meaning needs no body replay; an unchanged revision without the needed retained
+meaning still requires recovery. Use exact-task `status` when only freshness or
+pin state needs checking, rather than repeating both bodies. No routine
+per-turn status check follows. The sketchpad holds only ideas the user asks to put
+there or ideas an agent truly needs to retain for continued development or
+reasoning, under the [complete content boundary](concept_lock_lifecycle_and_promotion_standard_v1.md#sketchpad-content-boundary).
+It is not an operational diary or a mandatory task summary. Keep each admitted
+idea's current form, necessary reasoning and unresolved meaning; recording a
+proposal does not make it accepted. The to-do contains only Now / Next / Parked
+work and discussion. Update the fitting record when its meaning changes. Replace
+superseded idea wording, update dependent actions and remove completed ones in
+that same update. Do not append competing versions or completion transcripts.
 
-A checked action is completion state, not an archival entry. The to-do tool's
-`complete` removes it from active state; legacy Done/Completed bodies are cleaned
-through its existing read/write behavior. For a layered work map, update the full
-body coherently using the supported write command instead of losing dependency
-relationships through isolated item edits. Meaningful historical evidence stays
-with Git, real status/evidence owners or existing task history, not active actions.
+The to-do body contains only Now / Next / Parked unfinished work and discussion.
+Empty sections are valid; do not generate placeholder items, Notes or Metadata
+sections, timestamped bookkeeping or completion summaries. Necessary ordering,
+dependencies, dates, discussion questions and supporting detail belong with the
+unfinished item they serve. Do not turn Parked into an archive of finished work.
 
-After authorized verified promotion, replace the promoted body in the sketchpad
-with a concise durable-source pointer, retaining only current context and open
-work. Neither overlay becomes a second repository authority. Use native AGENTS
+After updating any dependent unfinished work, remove the completed item and its
+obsolete attached detail completely. The tool's `complete` removes an item from
+active state; checking an item is completion, not permission to retain its body.
+Reconcile unfinished child tasks before completing their parent; a contradictory
+completed-parent/unfinished-child group must remain recoverable until resolved.
+Use `add` or a coherent `write` to maintain current work; timestamped note append
+is retired. For a layered work map, preserve the needed discussion and dependency
+structure instead of flattening it through isolated item edits.
+
+Reconcile a legacy list's substantive content into the remaining unfinished work
+before discarding old Notes or unknown sections. Do not silently drop unresolved
+work as formatting cleanup. Remove generated metadata and completed bookkeeping
+from the body; the tool's separate identity, revision and pin metadata retain
+their concurrency and storage jobs. Meaningful historical evidence keeps its
+existing owner rather than accumulating in active actions.
+
+After authorized verified promotion, clear the promoted material completely
+from the sketchpad: no pointer, promotion summary or completion entry remains.
+Retain only other admitted unpromoted ideas; an empty pinned sketchpad is valid.
+Neither overlay becomes a second repository authority. Use native AGENTS
 discovery and the existing tools directly; do not add a continuity hook, automatic
 file-body injection, parallel memory store or completion ledger. Home guidance
 uses the installing user's explicit workspace and storage paths; use the tools'
 `--codex-root` and `--backup-root` selectors.
 
-## Conditional updates and recovery
+<a id="conditional-updates-and-recovery"></a>
+## Revision-bound reads and conditional updates
 
 Use the current tools together for a given continuity store. Every mutation
 requires either `--expected <mutation_token>` from an actual read/check/status of
@@ -83,10 +109,23 @@ stored bytes, even if a to-do's sanitized forward-looking view looks unchanged.
 The returned `parser_support` describes the supported Markdown subset; it is not
 a full Markdown renderer. Setext headings remain ordinary content.
 
+Use references-only ancestry when its complete meaning is already retained at
+the same revision; include or recover it when it supplies needed qualifications.
+Ancestry does not replace material siblings or linked complete owners. Choose
+coherent pages that fit both the individual tool and enclosing batch output.
+Continue from the missing portion instead of rereading a delivered prefix. A
+truncated excerpt or page is not a complete read.
+
 Text and JSON reads carry source/view identity and coverage alongside the body.
 Consumers that previously expected plain body-only `read` output must use the
 JSON `body` field. A final page is not proof that earlier pages were received;
 retain the revision and delivered ranges when complete coverage matters.
+
+Default text readback presents the useful body and essential source, coverage,
+failure and continuation facts once; JSON retains structured metadata and
+navigation. Use the representation needed by the actual consumer rather than
+printing both as duplicate context. A complete result does not require another
+identical read.
 
 Document OS locks serialize participating writers, and a registry OS lock
 protects different task entries. Reads may create a coordination lock file but
