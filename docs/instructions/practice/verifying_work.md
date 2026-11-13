@@ -405,6 +405,8 @@ miss. Select them for contribution, not a universal second-agent requirement,
 approval count or fixed number of rounds. Use the [independent derivation method](../agent_workflow/purpose_coupled_independent_clean_room_standard_v1.md)
 when controlling exposure to a particular incumbent has useful decision value.
 Fresh authorship is not nonexposure, and ordinary review need not be clean-room.
+Codex delegated verification also follows the single global
+[delegation discipline](../framework/Codex_Home_Guidance.md#codex-delegation-discipline).
 
 ## Evaluate capability improvements on the claim actually made
 

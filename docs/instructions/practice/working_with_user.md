@@ -175,7 +175,8 @@ across discussion, implementation, operations, delegation and recovery.
 
 ## Delegate and finish the actual unit
 
-Codex work follows the [global delegation-depth rule](../framework/Codex_Home_Guidance.md#codex-delegation-depth)
+Codex work follows the global [delegation-depth rule](../framework/Codex_Home_Guidance.md#codex-delegation-depth)
+and [delegation discipline](../framework/Codex_Home_Guidance.md#codex-delegation-discipline)
 in the resident orientation; use that one owner rather than a project- or
 account-specific copy of the policy.
 

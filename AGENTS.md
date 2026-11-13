@@ -111,10 +111,12 @@ reset, stash, overwrite or absorb them merely to simplify this task.
 
 ## Exact-task continuity and accepted decisions
 
-Apply the [single Codex delegation-depth rule](docs/instructions/framework/Codex_Home_Guidance.md#codex-delegation-depth),
-carried in home guidance. If it was not supplied, recover that section before
-delegating. This is an instruction rule; the toolkit does not install a native
-runtime depth cap.
+Apply the Codex [depth limit](docs/instructions/framework/Codex_Home_Guidance.md#codex-delegation-depth)
+and [delegation discipline](docs/instructions/framework/Codex_Home_Guidance.md#codex-delegation-discipline),
+both carried in home guidance. Preserve them across child creation and context
+renewal; this entrypoint does not define a separate delegation policy. Recover
+any missing rule from that owner before delegating. These are instruction rules;
+the toolkit does not install a native runtime depth cap.
 
 For a Codex task with an actual identity, on first acquisition check and read both
 continuity owners before other work, using explicit task and configured storage

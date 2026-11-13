@@ -4,8 +4,10 @@ The [home guidance source](../instructions/framework/Codex_Home_Guidance.md)
 is the single authored source for generated home guidance. The common `AGENTS.md`
 entrypoint owns practical operating instructions throughout the adopted scope;
 repository-specific provisions retain their actual subjects. Home guidance gives
-orientation, the depth rule, explicit bindings and recovery routes. It does not
-repeat the operating body or create a second conceptual authority.
+orientation, the depth limit and delegation discipline, explicit bindings and
+recovery routes. The complete delegation rules share that one authored home
+owner; the common entrypoint and practical guides route to it. Home guidance
+does not repeat the operating body or create a second conceptual authority.
 
 `python scripts/tools/codex_instruction_delivery.py usage --format json` describes
 the complete CLI. The [setup guide](../setup.md) covers installation on Windows

@@ -108,7 +108,8 @@ records or claim that the extracted tools inherit their qualification.
 ## Orientation kernel
 
 The [home guidance source](Codex_Home_Guidance.md) owns the single authored
-resident carrier, including the [Codex delegation-depth rule](Codex_Home_Guidance.md#codex-delegation-depth).
+resident carrier, including the Codex [delegation-depth rule](Codex_Home_Guidance.md#codex-delegation-depth)
+and [delegation discipline](Codex_Home_Guidance.md#codex-delegation-discipline).
 The [delivery owner](../../ops/codex_instruction_delivery.md) renders explicit
 local bindings and qualifies actual delivery. Reuse an already-delivered carrier;
 read that source only when its content is needed. This README keeps framework
