@@ -270,10 +270,12 @@ their explicit contract boundaries.
 
 ## Portability, resources, assurance and closeout
 
-Support Windows and Linux across the included toolkit. Use explicit user-owned
-paths, platform-appropriate locking, permissions, process/signal operations and
-protected storage. Do not assume a particular username, machine, drive, shell,
-keyring session, desktop client or elevated process. Document actual integration
+Support Windows and Linux for the shared toolkit. Platform-specific components
+such as the optional Linux capacity coordinator declare their own requirements.
+Use explicit user-owned paths, platform-appropriate locking, permissions,
+process/signal operations and protected storage. Do not assume a particular
+username, machine, drive, shell, keyring session, desktop client or elevated
+process. Document actual integration
 prerequisites and demonstrate the supported operation on each platform; a
 successful Python import alone does not establish browser or custody support.
 
@@ -309,6 +311,9 @@ Preserve managed/shared live processes. Stop only task-owned or proven-stale
 instances whose dependents and authority permit it. Close disposable resources
 when their useful work ends; preserve user-owned host infrastructure and retained
 services. Do not reset persistent data to fix a convenience problem.
+
+Agents and subagents [release their own interactive REPLs](docs/instructions/practice/using_capabilities.md#release-interactive-repls-after-use)
+as soon as they finish using each session, even if the wider task continues.
 
 Select evidence for the actual reliance, consequences and uncertainty. Keep
 conclusions proportional without ceremonial caution, and retain protection and

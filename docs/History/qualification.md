@@ -9,6 +9,27 @@ operating context or a claim that later changes inherit every earlier result.
 Use [current support and verification](../qualification.md) for present scope,
 limits and procedures; retrieve a specific record when its evidence is needed.
 
+## November 20 checkout and capacity
+
+On Linux x86-64 with Python 3.12.13, Git 2.53.0 and Node 20.19.6, the
+public CLI deferred a disposable checkout update first on a registered file
+hold and then on a running Node process. The reported PID matched the child
+started by the fixture. After the child exited, the CLI applied the pending
+revision and preserved distinct staged and working versions of another file.
+A separate live Codex session check correlated the kernel and worker with
+their owning chat. Both exited on native reset. Synthetic profiles exercised
+direct, ambiguous and unavailable ownership. The new observer had no live
+Windows run.
+
+On Linux with Rust 1.97.1, the capacity package passed 135 tests, including
+local HTTP, MCP, dispatch and agreement between help and the request schema for
+all 33 actions. Three opt-in cases were skipped. They require
+an isolated cgroup and filesystem, a prior dispatcher binary, or a separate
+large-state stress run. The documented example used temporary state, measured
+host RAM, held and admitted a 1 MiB request, launched `/bin/true`, and released
+the allocation. This established the example on a real host with no system
+service installation or workload-specific configuration.
+
 ## November 11 total meaning and continuity update
 
 The same source archive passed **104 tests on Linux** in 15.29 seconds and

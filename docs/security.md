@@ -66,6 +66,20 @@ Protocol Runner and Git integration have separate security boundaries. A worker
 contract does not sandbox a process; procedural completion does not certify its
 output. Follow the selected runtime's own controls and [Runner's security guide](https://github.com/Vector-Mosaic/protocol-runner/blob/f2041eb8b60171a3d847e86e4f2b6b43427cc9ec/SECURITY.md).
 
+For a guarded checkout, choose which operating-system accounts the tool can
+observe. In cooperative mode every reader must register its inputs before
+opening them. Selecting a Codex profile also enables
+local chat attribution for recognized REPLs. A match inferred from a launch
+time is a hint for contacting the owner. Keep blocker reports within the
+appropriate audience because they can identify chats. See
+[checkout operations](ops/concurrent_development.md).
+
+Run the [Linux capacity coordinator](linux-capacity.md) under a trusted
+account. Its local socket accepts requests that can change allocations and
+invoke explicitly configured callbacks. Give access to its state directory,
+socket and MCP client only to principals trusted for those operations.
+Workloads and callbacks run with the permissions of the launching process.
+
 ## Reporting a problem
 
 Do not include real credential values, account registries or session contents in

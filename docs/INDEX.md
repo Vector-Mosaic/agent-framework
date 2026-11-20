@@ -10,6 +10,7 @@ and [AGENTS.md](../AGENTS.md) for the instructions governing work here.
 | Understand instruction rendering and deliberate installation | [Instruction delivery](ops/codex_instruction_delivery.md). |
 | Use protected account custody and private browser handoff | [Credential handling](credentials.md). |
 | Coordinate independent source writers | [Concurrent Development operations](ops/concurrent_development.md) and its [agreement](instructions/agent_workflow/concurrent_development.md). |
+| Coordinate workloads sharing a Linux host | [Linux capacity setup and operation](linux-capacity.md). |
 | Connect the separately distributed optional runner | [Protocol Runner integration](integrations/protocol-runner.md). |
 | Understand included components and adaptation boundaries | [Architecture](architecture.md). |
 | Understand trust, privacy and security limits | [Security](security.md). |

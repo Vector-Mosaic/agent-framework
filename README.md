@@ -55,7 +55,8 @@ cloning the source does not modify your agent configuration.
 | Instruction delivery | Render, preview, install, update and remove the managed instruction section. |
 | Tool discovery | Find the included commands and read their actual interfaces before use. |
 | Credential handoff | Fill an observed browser field from protected, account-bound custody without putting the value in ordinary agent output. |
-| Concurrent development | Optionally prepare and conditionally integrate work from separate Git workspaces. |
+| Concurrent development | Integrate work from separate Git workspaces. Opt in to guarded updates of a shared checkout and see which REPL and chat are holding it open when ownership is available. |
+| [Linux capacity coordination](docs/linux-capacity.md) | Let agents sharing a Linux host request resources together, see why a job is waiting, and recheck capacity before launch. |
 | Protocol Runner integration | Optionally execute an explicit work plan through the separately maintained [Protocol Runner](https://github.com/Vector-Mosaic/protocol-runner). |
 
 Core Python commands run directly from this checkout; no service or build is

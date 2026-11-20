@@ -75,6 +75,15 @@ work, and stops for reconciliation if the observed files or index changed during
 the operation. A later correction to governing meaning still bears when known;
 safe source refresh does not extend superseded authority.
 
+A maintained physical checkout can opt into [guarded upkeep](../../ops/concurrent_development.md#guarded-upkeep-of-the-maintained-checkout)
+for its configured shared branch. Use a separately installed stable tool. Admit
+actual physical-source readers before they open the checkout, including readers
+outside the selected OS account and programs that choose inputs dynamically.
+Release the hold at the consumer boundary. Publication queues the integrated
+revision, and existing closeout or release boundaries retry a deferred update.
+Use the reported REPL identity and chat attribution to find the owner of a
+blocking session; contact that owner when release is needed.
+
 An interrupted refresh retains only the exact active operation's inputs and
 source/index/HEAD identities so its owner can finish or roll it back. Preserve
 newer edits and another process's locks during reconciliation. The operation

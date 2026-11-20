@@ -26,7 +26,9 @@ tests and observed use establish only their actual bounded properties.
 | Windows DPAPI and Linux Secret Service | Existing qualified protected-custody implementations are unchanged. Their exact account, origin and pending/active TOTP boundaries remain; this update makes no new real-account claim. |
 | Browser credential delivery | Existing qualified Windows native-browser and Linux Firefox routes are unchanged. Guarded field delivery does not submit a form or establish support for every browser client. |
 | Clipboard and terminal | Existing isolated Windows and Linux X11 clipboard and Linux terminal results remain applicable to unchanged consumers. Live Wayland qualification remains open; no automatic fallback is selected. |
-| Concurrent Git integration and optional Runner | Existing integration implementations and their qualified scopes are unchanged. No live Runner/model mission is part of this update. |
+| Git integration and shared checkout refresh | On Linux, the maintained checkout can defer on an input hold or observed Node process, retain the pending revision, and refresh while preserving staged and unstaged edits. A selected Codex profile can identify an owning chat. Core Git integration retains its earlier Windows qualification. Live Windows process inspection for the new guard is unverified. See [checkout and capacity evidence](History/qualification.md#november-20-checkout-and-capacity). |
+| Linux capacity coordination | The Rust coordinator and its local HTTP and MCP interfaces were exercised on Linux. The runnable example covers admission, a maintenance hold, native RAM observation, dispatch and release. Host-specific cgroup and GPU configurations need verification on the adopting host. |
+| Protocol Runner | The optional Runner integration retains its previously qualified scope. |
 | Public adaptation | User-configured paths, accounts, hosts, project scope and interpreter selection remain explicit. Private installation state, grants and operational inventory are excluded. |
 
 Tests of the public toolkit do not establish every native client's instruction
@@ -46,9 +48,15 @@ check after a documentation edit.
 python -m pip install -r requirements-dev.txt
 python -m pytest repo_platform/tooling/tests -q
 python -m unittest discover -s repo_platform/concurrent_development/tests
+python -m unittest discover -s tests -p test_repl_chat_owner.py
 python -m pytest tests/credentials/test_custody.py tests/credential_adapters/test_adapters.py -q
 node --test tests/credentials/browser-handoff.test.mjs
 ```
+
+For Linux capacity, run the package tests with
+`cargo test --release --locked --manifest-path repo_platform/capacity/Cargo.toml`
+and follow the [isolated allocation example](linux-capacity.md#try-an-allocation)
+for an end-to-end check.
 
 For an actual storage/browser check on Linux, install the optional credential
 dependencies and use a disposable, unlocked Secret Service collection as

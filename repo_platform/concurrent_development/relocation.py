@@ -76,6 +76,8 @@ def _snapshot(service: ConcurrentDevelopment, source: Path, target: Path,
     refs: dict[str, str | None] = {}
     rows: list[dict[str, Any]] = []
     blockers: list[dict[str, Any]] = []
+    if (service.common / "agent-framework/main-upkeep/state.json").exists():
+        blockers.append({"code": "main_upkeep_configured", "command": "clear-main-upkeep"})
     for path in sorted(service.directory.glob("*.json")):
         try:
             value = json.loads(path.read_text(encoding="utf-8"))

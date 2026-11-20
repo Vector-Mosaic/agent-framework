@@ -117,9 +117,9 @@
       "id": "tool.concurrent_development",
       "name": "concurrent_development",
       "display_name": "Concurrent source integration",
-      "description": "Bind an owned Git workspace, prepare selected ready source against a configured shared branch, publish conditionally and refresh while preserving unfinished changes.",
+      "description": "Publish selected Git changes conditionally, refresh individual workspaces, or enable guarded refresh of the maintained checkout and inspect blocking REPLs and their chat owners.",
       "category": "dev_helper",
-      "tags": ["git", "concurrent", "integration", "workspace", "publish"],
+      "tags": ["git", "concurrent", "integration", "workspace", "publish", "checkout", "refresh", "repl"],
       "entrypoints": [{"type": "python", "path": "tools/concurrent_development.py"}],
       "commands": {
         "usage": {"cmd": "python scripts/tools/concurrent_development.py usage"},
@@ -131,13 +131,40 @@
         "usage_command": "python scripts/tools/concurrent_development.py usage",
         "json_usage_command": "python scripts/tools/concurrent_development.py usage --format json",
         "safe_no_arg": "usage",
-        "verbs": ["usage", "status", "relocate-common-dir", "bind", "release-binding", "prepare-integration", "expose-candidate", "publish", "refresh", "reconcile-refresh", "close", "retract-candidate", "retain-candidate", "release-candidate"],
-        "selectors": ["--root", "--state-root", "--remote", "--shared-branch", "--binding-id", "--owner-id", "--candidate-id"],
+        "verbs": ["usage", "status", "relocate-common-dir", "bind", "release-binding", "prepare-integration", "expose-candidate", "publish", "refresh", "reconcile-refresh", "close", "retract-candidate", "retain-candidate", "release-candidate", "configure-main-upkeep", "main-upkeep-status", "upkeep-main", "hold-main-inputs", "release-main-inputs", "clear-main-upkeep"],
+        "selectors": ["--root", "--state-root", "--remote", "--shared-branch", "--binding-id", "--owner-id", "--candidate-id", "--main-root", "--process-scope", "--codex-root", "--hold-id"],
         "formats": ["text", "json"]
       },
-      "side_effects": {"writes_repo": true, "writes_paths": ["Selected Git workspace, owned refs and local integration state"], "modifies_remote": true, "network_access": "Preparation fetches the configured remote; explicit expose/publish/close operations may update owned remote refs. Usage is offline.", "danger_level": "high", "supports_dry_run": true, "idempotent": false, "default_mode": "usage; commands require an explicitly bound workspace and command-specific expected identities"},
+      "side_effects": {"writes_repo": true, "writes_paths": ["Selected Git workspace, owned refs and local integration state", "Configured maintained checkout when its refresh guard admits the update"], "modifies_remote": true, "network_access": "Preparation and upkeep can fetch the selected remote. Expose, publish and close may update owned remote refs. Usage is offline.", "danger_level": "high", "supports_dry_run": true, "idempotent": false, "default_mode": "usage; maintained-checkout refresh requires explicit configuration"},
       "verification": {"success": "Candidate identity and observed shared parent are explicit; publish advances only the expected shared state. The tool does not create or delete workspaces.", "failure": "Stale generations, conflicts and changed refs are reported; inspect current binding/candidate state before retrying an uncertain publication."},
       "docs": ["docs/ops/concurrent_development.md"],
+      "stability": "experimental"
+    },
+    {
+      "id": "tool.capacity",
+      "name": "capacity",
+      "display_name": "Linux capacity coordinator",
+      "description": "Coordinate resource requests from workloads sharing a Linux host, inspect current capacity and waiting reasons, and recheck an allocation before launching its workload.",
+      "category": "ops",
+      "tags": ["linux", "resource", "capacity", "cpu", "ram", "gpu", "workload"],
+      "entrypoints": [{"type": "python", "path": "tools/capacity.py"}],
+      "commands": {
+        "usage": {"cmd": "python scripts/tools/capacity.py usage"},
+        "usage_json": {"cmd": "python scripts/tools/capacity.py usage --format json"}
+      },
+      "agent_interface": {
+        "interface_version": "tool_handshake.v1",
+        "preferred_entrypoint": "python scripts/tools/capacity.py",
+        "usage_command": "python scripts/tools/capacity.py usage",
+        "json_usage_command": "python scripts/tools/capacity.py usage --format json",
+        "safe_no_arg": "usage",
+        "verbs": ["usage", "request", "serve", "mcp", "dispatch", "guard"],
+        "selectors": ["--state-root"],
+        "formats": ["text", "json"]
+      },
+      "side_effects": {"writes_repo": false, "writes_paths": ["Operator-selected private state directory and Unix socket", "Operator-configured workload and callback destinations"], "modifies_remote": false, "network_access": "The coordinator uses a local Unix socket. A selected workload or callback has its own effects.", "danger_level": "high", "supports_dry_run": false, "idempotent": false, "default_mode": "offline usage; operating commands require an installed binary and a selected host state directory"},
+      "verification": {"success": "Read the resulting allocation, hold, dispatch or recovery state for the selected action.", "failure": "Inspect the selected instance, current revision, observations and action result before retrying any uncertain launch."},
+      "docs": ["docs/linux-capacity.md"],
       "stability": "experimental"
     },
     {

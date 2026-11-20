@@ -18,3 +18,4 @@ artifacts/
 *.key
 *.pem
 .protocol-runner/
+/repo_platform/capacity/target/

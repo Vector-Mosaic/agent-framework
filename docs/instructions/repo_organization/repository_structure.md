@@ -39,10 +39,11 @@ the [system-documentation roles](system_documentation.md), and the
 | `tests/` | Focused checks for the public toolkit and supported platforms. |
 | `templates/` | Installation templates and example instruction entrypoints where setup consumes them. |
 
-This public toolkit uses `repo_platform/` for shared Python implementation,
+This public toolkit uses `repo_platform/` for shared implementation, including
+the optional Rust capacity coordinator,
 `scripts/tools/` for stable commands, `docs/` for the complete instructions and
 operating knowledge, and `tests/` and `examples/` for qualification and adoption.
-Native packaging metadata remains at the root. The wider `systems/` and `infra/`
+Native packaging metadata stays with the package it describes. The wider `systems/` and `infra/`
 arrangement describes how the method scales to an adopting repository; it is not
 a claim that those directories or deployed systems exist in this toolkit.
 

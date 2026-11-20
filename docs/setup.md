@@ -1,15 +1,16 @@
 # Setup on Windows and Linux
 
-The same Python tools and instruction files run on both platforms. Use Python
-3.11 or newer. `python` below means the selected Python interpreter; on Linux,
-use `python3` if your installation does not provide `python`. Node.js and browser
-runtime requirements apply only when you enable the credential/browser integration.
+The instruction files and core Python tools run on both platforms. The optional
+capacity coordinator runs on Linux. Use Python 3.11 or newer. On Linux,
+use `python3` for the commands below if your installation does not provide
+`python`. Node.js and browser runtime requirements apply only when you enable
+the credential/browser integration.
 See [credential setup](credentials.md) for those requirements.
 
-Keep this checkout at a stable location: installed guidance links back to its
-complete framework and tools. There is no background service or automatic source
-synchronization. Updating the checkout and updating installed instructions are
-separate deliberate actions.
+Keep this checkout at a stable location because installed guidance links back to
+its complete framework and tools. The instruction installer starts no service.
+Updating installed guidance is a separate action from updating source. To opt
+in to guarded source updates, see [concurrent development](ops/concurrent_development.md).
 
 ## Start without installing anything
 
@@ -180,4 +181,6 @@ boundaries. Credential delivery requires user-owned account configuration and
 local protected custody. Concurrent-development support requires a Git repository
 and deliberately selected source bindings. Protocol Runner remains a separately
 installed integration; adopting instructions does not start orchestration or
-create remote accounts.
+create remote accounts. Agents sharing compute on Linux can also use the
+[capacity coordinator](linux-capacity.md). Its build and host policy are
+needed only for that component.

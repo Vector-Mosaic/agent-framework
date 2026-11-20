@@ -123,6 +123,22 @@ def _parser() -> argparse.ArgumentParser:
         command = verbs.add_parser(verb, help=description, allow_abbrev=False)
         _candidate_arguments(command)
         command.add_argument("--job-id", required=True, help="Exact consuming qualification job identity; release only after the consumer has finished.")
+    configure = verbs.add_parser("configure-main-upkeep", help="Configure guarded maintenance of the exact primary checkout; no source update.", allow_abbrev=False)
+    toggle = configure.add_mutually_exclusive_group(required=True)
+    toggle.add_argument("--enable", action="store_true", help="Enable uptake of published changes for this primary checkout.")
+    toggle.add_argument("--disable", action="store_true", help="Suspend attempts and preserve active holds and pending work.")
+    configure.add_argument("--main-root", type=Path, help="Exact primary checkout; required for initial activation.")
+    configure.add_argument("--process-scope", choices=("host", "current_user", "cooperative"), help="host (default) or current_user require in-scope visibility; cooperative requires holds for every input user and additionally defers on observed Node blockers.")
+    configure.add_argument("--codex-root", type=Path, help="Optional absolute user-owned Codex profile directory for local chat attribution.")
+    verbs.add_parser("main-upkeep-status", help="Read the configured primary, holds, pending target and last observed blockers offline.", allow_abbrev=False)
+    verbs.add_parser("clear-main-upkeep", help="Remove idle, disabled configuration after pending work and readers finish.", allow_abbrev=False)
+    verbs.add_parser("upkeep-main", help="Observe current shared source and retry guarded primary upkeep.", allow_abbrev=False)
+    hold = verbs.add_parser("hold-main-inputs", help="Register physical inputs before a consumer begins using them.", allow_abbrev=False)
+    release = verbs.add_parser("release-main-inputs", help="Release a finished reader's hold and retry pending upkeep.", allow_abbrev=False)
+    for command in (hold, release):
+        command.add_argument("--hold-id", required=True, help="Exact input-use identifier.")
+        command.add_argument("--owner-id", required=True, help="Actual owner of the input use.")
+    hold.add_argument("--path", action="append", default=[], help="Exact checkout-relative file or absence to retain; repeat or omit for the whole checkout.")
     return parser
 
 
@@ -134,6 +150,12 @@ def _candidate_arguments(parser: argparse.ArgumentParser) -> None:
 def usage_payload() -> dict[str, Any]:
     verbs = [
         ToolVerb("usage", "none", "Return complete command information without loading workspace state."),
+        ToolVerb("configure-main-upkeep", "local primary configuration; no checkout update", "Opt in to an exact primary, Git destination, process observation scope and optional Codex profile."),
+        ToolVerb("main-upkeep-status", "local read only", "Show pending target, input holds and the last observed blockers with available chat ownership."),
+        ToolVerb("clear-main-upkeep", "remove idle configuration", "Clear only after disabling and finishing pending targets, holds and recovery."),
+        ToolVerb("upkeep-main", "read/fetch shared ref; guarded local checkout update", "Coalesce shared progress and attempt a protected fast-forward of the configured physical primary."),
+        ToolVerb("hold-main-inputs", "local input hold", "Reserve stable files or the whole primary before use."),
+        ToolVerb("release-main-inputs", "remove input hold and attempt pending checkout update", "Release only this completed input use."),
         ToolVerb("status", "local read only", "Inspect one exact binding, generation, and current candidate."),
         ToolVerb("relocate-common-dir", "local binding-path writes unless --dry-run; no source/ref/network changes", "Reconcile all exact common-directory bindings after an authorized same-volume main-root rename, retaining candidates and consumers."),
         ToolVerb("bind", "local integration-state write", "Bind the real owner and workspace to its exact incorporated base."),
@@ -180,6 +202,10 @@ def usage_payload() -> dict[str, Any]:
             "workspace_lifecycle": "The external, native Codex or Runner owner retains workspace creation/removal ownership",
         },
         command_details=argparse_command_details(_parser(), semantics={
+            "configure-main-upkeep": {"prerequisites": ["Use a stable toolkit installation outside the physical checkout and register existing readers at a quiet setup boundary."], "constraints": ["The primary must have the configured shared branch checked out. Use current_user only when other-account readers acquire holds; cooperative requires every consumer to acquire holds before use, and reports incomplete native visibility."]},
+            "upkeep-main": {"retry": "Inspect main-upkeep-status for the observed reason, exact process and optional chat. Retry after the reader releases its inputs; interruption resumes its own guarded transaction."},
+            "hold-main-inputs": {"prerequisites": ["Acquire the hold before the program opens input files and retain its actual owner."], "retry": "A refused admission does not establish a hold; retry after the reported operation."},
+
             "relocate-common-dir": {"prerequisites": ["Coordinate a quiet boundary for the selected repository and use this owner version for all cooperating writers.", "Preview before physical movement; resolve active refresh/ref operations and Git locks through their owners.", "For mutation, physically rename the main root on the same volume and repair surviving Git worktrees first."], "constraints": ["Changes only git_common_dir and workspace paths beneath the renamed primary root; absent historical workspaces remain absent.", "The original expected-state digest covers complete binding records, retained local refs and physical Git-directory identity.", "No source/index/ref mutation, remote access, workspace reconstruction or candidate/consumer release."], "retry": "Keep the exact paths and expected-state after failure. A pending marker fences affected cooperating mutations; dry-run reports partial progress. Retry finish at the repaired destination, or physically return and repair Git before rollback. Newer state is preserved and blocks reconciliation. After completed relocation, a later reversal needs a fresh reverse preview."},
             "bind": {"prerequisites": ["The exact workspace and owner identity are known.", "The base is the actual shared revision incorporated into this workspace."], "retry": "Read status after an interrupted bind; do not silently rebind another owner."},
             "release-binding": {"prerequisites": ["Candidate closeout and verified source handoff are complete.", "The exact workspace owner identity is known; the workspace still exists."], "retry": "Missing binding metadata after interruption means there is no binding left to release; workspace lifecycle remains with its owner."},
@@ -216,7 +242,7 @@ def usage_payload() -> dict[str, Any]:
             "assurance": "The agent owns semantic readiness and relevant verification; preparing or exposing a candidate establishes neither.",
             "source_selection": "Whole paths select their complete changes. --ready-tree represents a deliberately authored ready tree relative to the binding base and supports mixed readiness within a file. Unselected working source and the real index are preserved during preparation.",
             "excluded": ["backup or save/restore service", "recovery-ref rotation or archive retention", "workspace creation/removal", "automatic global workflow activation", "deployment authorization"],
-            "exit_codes": {"0": "operation completed or help returned; a published candidate can still require an explicit workspace refresh", "1": "operation is stale, not published/exposed, or uncertain; inspect exact state before continuing", "2": "invalid arguments or core/IO operation error; inspect the structured error and current state"},
+            "exit_codes": {"0": "operation completed or help returned; a published candidate can still require an explicit workspace refresh", "1": "operation is stale, not published/exposed, uncertain, or an explicit upkeep-main was deferred; inspect exact state before continuing", "2": "invalid arguments or core/IO operation error; inspect the structured error and current state"},
         },
     )
 
@@ -254,11 +280,39 @@ def _requested_format(raw: Sequence[str]) -> str:
     return result
 
 
+def _blocker_line(row: dict[str, Any]) -> str:
+    names = {"node": "Node process", "repl": "REPL", "node_repl": "Node REPL", "computer_use_repl": "Computer-use REPL"}
+    label = names[row["kind"]]
+    if row["role"] != "process":
+        label += " " + row["role"]
+    label += f" PID {row['pid']}"
+    chat = row.get("chat_owner")
+    if not chat:
+        return label
+    if chat["status"] == "unknown":
+        return f"{label} — chat unknown"
+    def title(name, thread):
+        return f"{name} ({thread})" if name else thread
+    child = title(chat.get("name"), chat["thread_id"])
+    if chat.get("agent_path"):
+        child += f" {chat['agent_path']}"
+    if chat.get("parent_thread_id"):
+        child += " in " + title(chat.get("parent_name"), chat["parent_thread_id"])
+    return f"{label} — {child} ({chat['status']})"
+
+
 def _emit(payload: dict[str, Any], output_format: str, *, stream: TextIO) -> None:
     emit_payload(payload, output_format=output_format, stream=stream)
     if output_format == "text" and payload.get("schema_version") == "tool_result.v1":
         # The shared compact result renderer omits data and retry metadata.
         # Keep identities, conflicts, and recovery actions available in text too.
+        data = payload.get("data") or {}
+        upkeep = data.get("last_outcome") or data.get("main_upkeep") or data
+        if upkeep.get("blocking_process_count"):
+            count = upkeep["blocking_process_count"]
+            stream.write(f"The last refresh was deferred by {count} Node process{'es' if count != 1 else ''}.\n")
+            for row in upkeep["blocking_processes"]:
+                stream.write(_blocker_line(row) + "\n")
         if payload.get("data"):
             stream.write("data:\n" + json.dumps(payload["data"], indent=2, sort_keys=True) + "\n")
         for error in payload.get("errors", []):
@@ -269,6 +323,21 @@ def _emit(payload: dict[str, Any], output_format: str, *, stream: TextIO) -> Non
 
 
 def _dispatch(service: Any, args: argparse.Namespace) -> dict[str, Any]:
+    if args.verb in {"configure-main-upkeep", "main-upkeep-status", "clear-main-upkeep", "upkeep-main", "hold-main-inputs", "release-main-inputs"}:
+        from .main_upkeep import MainUpkeep
+        upkeep = MainUpkeep(service)
+        if args.verb == "configure-main-upkeep":
+            return upkeep.configure(enabled=args.enable, main_root=args.main_root, process_scope=args.process_scope,
+                                    codex_root=args.codex_root)
+        if args.verb == "main-upkeep-status":
+            return upkeep.status()
+        if args.verb == "clear-main-upkeep":
+            return upkeep.clear()
+        if args.verb == "hold-main-inputs":
+            return upkeep.hold(args.hold_id, args.owner_id, args.path)
+        if args.verb == "release-main-inputs":
+            return upkeep.release(args.hold_id, args.owner_id)
+        return upkeep.attempt()
     if args.verb == "status":
         return service.status(args.binding_id)
     if args.verb == "relocate-common-dir":
@@ -346,10 +415,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             _emit(payload, output_format, stream=sys.stdout if output_format == "json" else sys.stderr)
             return 2
         operation_status = data.get("status")
-        incomplete = operation_status in INCOMPLETE_STATUSES
+        incomplete = operation_status in INCOMPLETE_STATUSES or (verb == "upkeep-main" and operation_status == "deferred")
         summary = data.get("summary")
         if not summary:
-            if incomplete:
+            if operation_status == "deferred":
+                summary = f"Checkout refresh deferred ({data.get('reason', 'input boundary')}). See the pending target and blocker details below."
+            elif incomplete:
                 summary = f"{verb}: {operation_status}; inspect the returned exact state before retrying."
             elif data.get("refresh_required"):
                 summary = f"{verb}: {operation_status or 'completed'}; the bound workspace still requires refresh at a safe boundary."
@@ -358,7 +429,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         payload = tool_result_payload(
             tool_id=TOOL_ID, verb=verb, status="error" if incomplete else "ok", summary=str(summary), data=data,
             errors=[{"code": str(operation_status), "message": str(summary),
-                     "retry_hint": "Read back exact shared/candidate state; recombine stale candidates and reconsider affected evidence before publishing."}] if incomplete else [],
+                     "retry_hint": ("Inspect main-upkeep-status and retry after the reported input or conflict clears." if verb == "upkeep-main"
+                                    else "Read back exact shared/candidate state; recombine stale candidates and reconsider affected evidence before publishing.")}] if incomplete else [],
         )
         _emit(payload, output_format, stream=sys.stdout)
         return 1 if incomplete else 0

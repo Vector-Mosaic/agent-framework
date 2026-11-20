@@ -1,0 +1,1995 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Apeiros Linux capacity operation",
+  "type": "object",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "inspect"
+        },
+        "view": {
+          "enum": [
+            "current",
+            "history",
+            "allocation",
+            "policy",
+            "holds",
+            "pressure",
+            "gpu_pressure",
+            "maintenance"
+          ],
+          "description": "Focused selection. allocation requires exact allocation_id; page returned source/after_id without changing the selection."
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "instance_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "host_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "instance_id",
+            "host_id"
+          ],
+          "additionalProperties": false
+        },
+        "after_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 25
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false,
+      "description": "Without view: existing full-state machine snapshot including retained history/counters. For routine use choose overview or an explicit focused view.",
+      "dependentRequired": {
+        "allocation_id": [
+          "view"
+        ],
+        "source": [
+          "view"
+        ],
+        "after_id": [
+          "view"
+        ],
+        "limit": [
+          "view"
+        ]
+      }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "cpu_policy"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "apply_cpu_policy"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scheduling_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Exact current scheduling policy revision, required after an effective scheduling policy is installed."
+        }
+      },
+      "required": [
+        "action",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "assess"
+        },
+        "request": {
+          "$ref": "#/$defs/Request"
+        }
+      },
+      "required": [
+        "action",
+        "request"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "admit"
+        },
+        "request": {
+          "$ref": "#/$defs/Request"
+        }
+      },
+      "required": [
+        "action",
+        "request"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "admit_if_fit"
+        },
+        "request": {
+          "$ref": "#/$defs/Request"
+        }
+      },
+      "required": [
+        "action",
+        "request"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "observe"
+        },
+        "observation": {
+          "type": "object",
+          "description": "Host/boot-bound observation following the complete CLI Observation contract; raw provider credentials are never accepted."
+        }
+      },
+      "required": [
+        "action",
+        "observation"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "observe_native"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "hold"
+        },
+        "hold": {
+          "type": "object",
+          "properties": {
+            "hold_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "object",
+              "properties": {
+                "host_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "system_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "operation_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "resource_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "host_id"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "hold_id",
+            "owner_ref",
+            "reason",
+            "scope",
+            "revision"
+          ],
+          "additionalProperties": false
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource",
+          "description": "Original observed capacity source. Recommended for direct conditional controls; the observation action uses source instead."
+        },
+        "expected_state_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Original observed state revision for conditional hold creation; the observation action uses revision instead."
+        }
+      },
+      "required": [
+        "action",
+        "hold"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "release_hold"
+        },
+        "hold_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource",
+          "description": "Original observed capacity source. Recommended for direct conditional controls; the observation action uses source instead."
+        }
+      },
+      "required": [
+        "action",
+        "hold_id",
+        "owner_ref",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "release"
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "object",
+          "properties": {
+            "owner_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "attempt_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "boot_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "execution_exited_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resources_released_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "no_successor_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "continuation_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "owner_ref",
+            "attempt_id",
+            "boot_id",
+            "execution_exited_ref",
+            "resources_released_ref",
+            "no_successor_ref",
+            "continuation_ref"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "action",
+        "allocation_id",
+        "revision",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "reconcile_step"
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "step_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "enum": [
+            "applied",
+            "failed",
+            "uncertain"
+          ]
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "action",
+        "allocation_id",
+        "revision",
+        "owner_ref",
+        "step_id",
+        "outcome",
+        "evidence_ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "bind_runtime"
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding": {
+          "$ref": "#/$defs/RuntimeBinding"
+        }
+      },
+      "required": [
+        "action",
+        "allocation_id",
+        "revision",
+        "owner_ref",
+        "binding"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "maintenance_prepare"
+        },
+        "maintenance": {
+          "type": "object",
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "change_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hold_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "stage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "object",
+              "properties": {
+                "host_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "system_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "operation_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                },
+                "resource_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "host_id"
+              ],
+              "additionalProperties": false
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "evidence_refs": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "operation_id",
+            "owner_ref",
+            "change_ref",
+            "hold_id",
+            "stage",
+            "scope",
+            "revision",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "action",
+        "maintenance"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "maintenance_record"
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stage": {
+          "enum": [
+            "drained",
+            "installed",
+            "activated",
+            "verified",
+            "uncertain"
+          ]
+        },
+        "evidence_refs": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "action",
+        "operation_id",
+        "revision",
+        "owner_ref",
+        "stage",
+        "evidence_refs"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "maintenance_finish"
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "action",
+        "operation_id",
+        "revision",
+        "owner_ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "follow"
+        },
+        "after_source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "after_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000
+        }
+      },
+      "required": [
+        "action",
+        "after_source",
+        "after_revision",
+        "timeout_ms"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "initialize"
+        },
+        "policy": {
+          "$ref": "#/$defs/Policy"
+        }
+      },
+      "required": [
+        "action",
+        "policy"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "reconfigure_policy"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Observed state.policy_revision, independent of observations."
+        },
+        "policy": {
+          "$ref": "#/$defs/Policy"
+        },
+        "change_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource",
+          "description": "Original observed capacity source. Recommended for direct conditional controls; the observation action uses source instead."
+        }
+      },
+      "required": [
+        "action",
+        "revision",
+        "policy",
+        "change_ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "schedule"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "succeed_pressure_control"
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource"
+        },
+        "expected_policy_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "expected_scheduling_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "expected_reservations": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/GPUReservationConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Complete observed selection. Supply null when the host has none."
+        },
+        "system_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S",
+          "not": {
+            "pattern": "\\u0000"
+          }
+        },
+        "previous_control": {
+          "$ref": "#/$defs/DomainControl",
+          "description": "Exact currently enrolled callback, including any router arguments."
+        },
+        "control": {
+          "$ref": "#/$defs/DomainControl",
+          "not": {
+            "properties": {
+              "argv": {
+                "minItems": 2,
+                "prefixItems": [
+                  true,
+                  {
+                    "const": "route-pressure-control"
+                  }
+                ]
+              }
+            }
+          },
+          "description": "Changed, qualified callback for future requests. Pending callbacks keep their original timing."
+        },
+        "change_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S",
+          "not": {
+            "pattern": "\\u0000"
+          }
+        }
+      },
+      "required": [
+        "action",
+        "expected_source",
+        "expected_policy_revision",
+        "expected_scheduling_revision",
+        "expected_reservations",
+        "system_id",
+        "previous_control",
+        "control",
+        "change_ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "pressure_tick"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "io_policy"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "apply_io_policy"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Observed state.policy_revision"
+        }
+      },
+      "required": [
+        "action",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "adopt_runtime"
+        },
+        "expected_instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_policy_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request": {
+          "$ref": "#/$defs/Request"
+        },
+        "binding": {
+          "$ref": "#/$defs/RuntimeBinding"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Existing authorized native owner/domain/incarnation/configuration observation; never a new launch grant."
+        }
+      },
+      "required": [
+        "action",
+        "expected_instance_id",
+        "expected_policy_revision",
+        "request",
+        "binding",
+        "evidence_ref"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "overview"
+        },
+        "view": {
+          "enum": [
+            "current",
+            "history",
+            "allocation",
+            "policy",
+            "holds",
+            "pressure",
+            "gpu_pressure",
+            "maintenance"
+          ],
+          "description": "Focused selection. allocation requires exact allocation_id; page returned source/after_id without changing the selection."
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "instance_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "host_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "instance_id",
+            "host_id"
+          ],
+          "additionalProperties": false
+        },
+        "after_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 25
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "help"
+        },
+        "operation": {
+          "type": "string",
+          "description": "Exact action for its input schema, effects, prerequisites, outcomes and recovery. Omit for action discovery."
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "observation"
+        },
+        "operation": {
+          "enum": [
+            "overview",
+            "inspect",
+            "follow",
+            "evidence",
+            "controls",
+            "control",
+            "diagnostic"
+          ]
+        },
+        "host_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allocation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Read selectors below. operation=controls returns each available control with its exact input_schema for parameters (source/revision, not direct expected_source fields). diagnostic accepts only action=cpu_policy|io_policy. Follow reuses cursor and view without page position.",
+          "properties": {
+            "view": {
+              "enum": [
+                "current",
+                "history",
+                "allocation",
+                "policy",
+                "holds",
+                "pressure",
+                "gpu_pressure",
+                "maintenance"
+              ],
+              "description": "Focused selection. allocation requires exact allocation_id; page returned source/after_id without changing the selection."
+            },
+            "source": {
+              "type": "object",
+              "properties": {
+                "instance_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "host_id": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "instance_id",
+                "host_id"
+              ],
+              "additionalProperties": false
+            },
+            "after_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cursor": {
+              "type": "object",
+              "description": "Exact original returned cursor with source, revision, view and allocation_id; never retarget."
+            },
+            "after_allocation_id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Retained spelling of after_id, requiring original source."
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "action",
+        "operation",
+        "host_id",
+        "limit",
+        "timeout_ms"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "configure_scheduling"
+        },
+        "expected_instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_policy_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "configuration": {
+          "$ref": "#/$defs/SchedulingConfiguration"
+        },
+        "expected_allocations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "request": {
+                "$ref": "#/$defs/Request"
+              },
+              "runtime": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/RuntimeBinding"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "revision",
+              "request",
+              "runtime"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "action",
+        "expected_instance_id",
+        "expected_policy_revision",
+        "revision",
+        "configuration",
+        "expected_allocations"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "request_demand_change"
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource"
+        },
+        "change": {
+          "$ref": "#/$defs/WorkingDemandChange"
+        }
+      },
+      "required": [
+        "action",
+        "expected_source",
+        "change"
+      ]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "cancel_demand_change"
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource"
+        },
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "change_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "action",
+        "expected_source",
+        "allocation_id",
+        "change_id",
+        "owner_ref"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "configure_reservations"
+        },
+        "expected_instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_policy_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "change_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reservations": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/GPUReservationConfiguration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "action",
+        "expected_instance_id",
+        "expected_policy_revision",
+        "revision",
+        "change_ref",
+        "reservations"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "action": {
+          "const": "configure_resource_preferences"
+        },
+        "expected_source": {
+          "$ref": "#/$defs/ExpectedSource",
+          "description": "Original observed capacity source. Recommended for direct conditional controls; the observation action uses source instead."
+        },
+        "expected_policy_revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "change_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "system_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "gpu_uuid": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "system_id",
+              "gpu_uuid"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "action",
+        "expected_source",
+        "expected_policy_revision",
+        "revision",
+        "change_ref",
+        "resources"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "Policy": {
+      "type": "object",
+      "properties": {
+        "host_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "machine_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/ResourcePolicy"
+          }
+        },
+        "cpu_aggregates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "cgroup": {
+                "type": "string",
+                "minLength": 1
+              },
+              "priority": {
+                "enum": [
+                  "priority",
+                  "normal"
+                ]
+              },
+              "control_owner_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "cgroup",
+              "priority",
+              "control_owner_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "domain_controls": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/DomainControl"
+          }
+        },
+        "io_limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "read_bytes_per_second": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "write_bytes_per_second": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 1
+                },
+                "change_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ending_condition": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "read_bytes_per_second",
+                "write_bytes_per_second",
+                "change_ref",
+                "ending_condition"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "required": [
+        "host_id",
+        "machine_id",
+        "resources"
+      ],
+      "additionalProperties": false
+    },
+    "Request": {
+      "type": "object",
+      "properties": {
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "system_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attempt_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configuration_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eligibility_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "enum": [
+            "priority",
+            "normal"
+          ]
+        },
+        "demand": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minProperties": 1
+        }
+      },
+      "required": [
+        "allocation_id",
+        "host_id",
+        "system_id",
+        "owner_ref",
+        "operation_id",
+        "attempt_id",
+        "source_ref",
+        "configuration_ref",
+        "eligibility_ref",
+        "release_route",
+        "priority",
+        "demand"
+      ],
+      "additionalProperties": false
+    },
+    "RuntimeBinding": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "type": "object",
+          "properties": {
+            "boot_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pid": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "start_ticks": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "boot_id",
+            "pid",
+            "start_ticks"
+          ],
+          "additionalProperties": false
+        },
+        "cgroup": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supervisor_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "process",
+        "cgroup",
+        "supervisor_ref"
+      ],
+      "additionalProperties": false
+    },
+    "SchedulingConfiguration": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "apeiros.capacity.scheduling.v1"
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "change_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "owner_ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "original_system_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "original_priority": {
+                "enum": [
+                  "normal",
+                  "priority"
+                ]
+              },
+              "system_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "priority": {
+                "enum": [
+                  "normal",
+                  "priority"
+                ]
+              },
+              "execution_system_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "owner_ref",
+              "original_system_id",
+              "original_priority",
+              "system_id",
+              "priority",
+              "execution_system_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "bookings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "original_request": {
+                "$ref": "#/$defs/Request"
+              },
+              "demand": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "eligibility_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "original_request",
+              "demand",
+              "eligibility_ref"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "native_priorities": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "normal",
+              "priority"
+            ]
+          }
+        },
+        "observe_running_cpu": {
+          "type": "boolean"
+        },
+        "observe_running_memory": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use fresh exactly attributed active RAM working sets; retain full forecasts for new dispatch and uncertain work. Legacy direct clients remain conservative."
+        }
+      },
+      "required": [
+        "schema",
+        "instance_id",
+        "host_id",
+        "revision",
+        "change_ref",
+        "routes",
+        "bookings",
+        "native_priorities",
+        "observe_running_cpu"
+      ],
+      "additionalProperties": false
+    },
+    "WorkingDemandChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allocation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "change_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_allocation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "revision",
+            "request",
+            "runtime"
+          ],
+          "properties": {
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "request": {
+              "$ref": "#/$defs/Request"
+            },
+            "runtime": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/RuntimeBinding"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "expected_booking": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "original_request",
+                "demand",
+                "eligibility_ref"
+              ],
+              "properties": {
+                "original_request": {
+                  "$ref": "#/$defs/Request"
+                },
+                "demand": {
+                  "type": "object",
+                  "minProperties": 1,
+                  "additionalProperties": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "eligibility_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_previous_change_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "demand": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "eligibility_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "allocation_id",
+        "change_id",
+        "owner_ref",
+        "expected_allocation",
+        "expected_booking",
+        "expected_previous_change_id",
+        "demand",
+        "eligibility_ref"
+      ]
+    },
+    "DomainControl": {
+      "type": "object",
+      "properties": {
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "not": {
+              "pattern": "\\u0000"
+            }
+          },
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^/",
+              "not": {
+                "pattern": "\\u0000"
+              }
+            }
+          ]
+        },
+        "qualification_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S",
+          "not": {
+            "pattern": "\\u0000"
+          }
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "stable_recovery_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        }
+      },
+      "required": [
+        "argv",
+        "qualification_ref",
+        "timeout_ms",
+        "stable_recovery_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ResourcePolicy": {
+      "type": "object",
+      "properties": {
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capacity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "operational_margin": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "priority_growth_margin": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observation_max_age_ms": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "native": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "memory"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "cpu"
+                },
+                "eligible_cpus": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "eligible_cpus"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "gpu_memory"
+                },
+                "uuid": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
+                "uuid"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "filesystem"
+                },
+                "mountpoint": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
+                "mountpoint",
+                "source"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "io_bandwidth"
+                },
+                "device": {
+                  "type": "object",
+                  "properties": {
+                    "mountpoint": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "filesystem_uuid": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "mountpoint",
+                    "filesystem_uuid"
+                  ],
+                  "additionalProperties": false
+                },
+                "capacity_evidence_ref": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
+                "device",
+                "capacity_evidence_ref"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "unit",
+        "capacity",
+        "operational_margin",
+        "priority_growth_margin",
+        "observation_max_age_ms"
+      ],
+      "additionalProperties": false
+    },
+    "ExpectedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "instance_id",
+        "host_id"
+      ],
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "GPUReservationConfiguration": {
+      "type": "object",
+      "properties": {
+        "policy_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "resource_policy": {
+                "$ref": "#/$defs/ResourcePolicy",
+                "properties": {
+                  "unit": {
+                    "const": "bytes"
+                  },
+                  "native": {
+                    "properties": {
+                      "kind": {
+                        "const": "gpu_memory"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "native"
+                ]
+              },
+              "original_operational_margin": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              },
+              "system_floors": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 18446744073709551615
+                }
+              },
+              "selection_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096,
+                "pattern": "\\S",
+                "not": {
+                  "pattern": "\\u0000"
+                }
+              }
+            },
+            "required": [
+              "resource_policy",
+              "original_operational_margin",
+              "system_floors",
+              "selection_ref"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "policy_revision",
+        "resources"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

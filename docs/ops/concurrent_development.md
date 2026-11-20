@@ -7,8 +7,9 @@ owns the collaboration method; this page explains the implementation and limits.
 
 [`scripts/tools/concurrent_development.py`](../../scripts/tools/concurrent_development.py)
 wraps the [portable library](../../repo_platform/concurrent_development/core.py).
-Python 3.11 or later and Git 2.38 or later are required. Commands have the same
-arguments on Windows PowerShell and Linux shells. No Codex app API, background
+Python 3.11 or later and Git 2.38 or later are required. The optional Windows
+process observer for a maintained checkout also uses `psutil`. Commands have
+the same arguments on Windows PowerShell and Linux shells. No Codex app API, background
 service or private monorepo is required. Git author name/email and transport
 authentication use the user's normal Git configuration; secrets do not belong in
 command arguments or remote URLs.
@@ -52,6 +53,94 @@ workspace branch, generation and candidate holds. OS file locks and atomic write
 coordinate cooperating processes. They cannot prevent unrelated editors or Git
 writers from changing files, so operations also check exact source/index/ref
 identities before installing a result.
+
+## Guarded upkeep of the maintained checkout
+
+A project can opt one physical primary checkout into automatic incorporation of
+its configured remote and shared branch. The local branch must be attached to
+that shared branch. Use a **separate stable toolkit installation** to run these
+commands, including when the maintained project itself contains this toolkit.
+Supply the usual integration state root and Git destination. Enroll at a quiet
+point after identifying active readers and source writers. The CLI detects a
+configured checkout in its own implementation path and directs callers to the
+separate installation before loading repository modules.
+
+For a managed team or desktop where every application registers its actual
+physical inputs, select the cooperative mode. In this example `--codex-root`
+enables optional local chat lookup. Omit it when
+no Codex profile has been selected. Replace all paths with the actual ones.
+
+```text
+python /path/to/stable-toolkit/scripts/tools/concurrent_development.py --root /path/to/project configure-main-upkeep --enable --main-root /path/to/project --process-scope cooperative --codex-root /path/to/codex-profile
+python /path/to/stable-toolkit/scripts/tools/concurrent_development.py --root /path/to/project upkeep-main --format json
+python /path/to/stable-toolkit/scripts/tools/concurrent_development.py --root /path/to/project main-upkeep-status --format json
+```
+
+`cooperative` requires every actual source consumer, across accounts and
+runtimes, to acquire a hold before opening its inputs and release it after use.
+The tool also inspects visible native Node processes and defers for any observed
+blocker. It reports incomplete supplementary process visibility explicitly.
+This mode works on desktops whose operating system hides executable metadata
+for protected processes. Choose it only when readers can honor that agreement.
+
+The default `host` scope requires visibility into the host's native process
+inventory. `current_user` binds observation to the configuring OS account. Use
+it when every reader outside that account coordinates its actual inputs through
+holds. A callback running as a different account defers the pending update.
+Linux reads procfs. Windows uses the optional `psutil` package in the selected
+Python environment. In the strict `host` and `current_user` modes, a missing
+dependency, unreadable in-scope inventory or unstable observation defers the
+refresh. Even a same-account desktop service can restrict process inspection.
+Linux native behavior has been exercised locally. Windows process observation has fixture
+coverage and awaits live Windows qualification.
+
+Native observation checks visible Node launch inputs and recognizes supported
+Node and computer-use REPL kernels and workers. The blocker report gives each
+reported PID, start identity, role and checkout scope, with a total when the
+visible list is bounded. A selected local Codex profile can add the owning chat
+or subagent, using a validated direct chat ID or a unique correlation. Ambiguous
+or unavailable ownership is shown as unknown. Last-outcome details describe the
+most recent attempt; `upkeep-main` takes a fresh observation. The process stays
+under its owner's control. Release a finished interactive session using the
+owning chat's tool, then retry at the next safe boundary.
+
+### Holding actual physical inputs
+
+Register a hold **before** starting a consumer that needs stable source. This
+covers non-Node programs, script inputs chosen dynamically, other-account
+consumers under `current_user`, and services or editors with access beyond the
+visible native launch. Native observations are snapshots. Pass readers that
+can start while upkeep is running through this admission before they open the
+checkout. Every consumer is responsible for the complete input scope. A
+candidate-qualification hold belongs to a separate immutable Git object.
+
+```text
+python /path/to/stable-toolkit/scripts/tools/concurrent_development.py --root /path/to/project hold-main-inputs --hold-id job-42 --owner-id job-run-42 --path config/input.json
+python /path/to/stable-toolkit/scripts/tools/concurrent_development.py --root /path/to/project release-main-inputs --hold-id job-42 --owner-id job-run-42
+```
+
+Repeat `--path` for known file inputs or expected absences. Omitting it
+holds the whole checkout. Start work only after the hold succeeds. Release the
+exact hold after the consumer finishes. An overlapping hold, unfinished Git
+operation, source conflict, untracked collision or unverifiable native input
+keeps the target pending. Existing edits and staging are retained. An
+interrupted physical refresh fences new readers and resumes its own journal
+under the same guard before taking a newer target. New or unrecognized source,
+index or journal state requires reconciliation with its actual owner.
+
+A confirmed publication through a linked workspace queues the observed shared
+head. Candidate closeout and input/consumer release boundaries retry upkeep.
+`upkeep-main` also fetches the current shared revision, including publications
+made elsewhere. There is no polling service. Offline status reads the recorded
+pending target, holds, and latest attempt. A deferred physical update is
+reported separately from a confirmed remote publication.
+
+Configuration and pending state belong to the primary's Git common directory,
+independently of task worktree lifetimes. Each operation rechecks its physical
+identity and configured destination. To pause, use `configure-main-upkeep
+--disable`. It retains active holds and pending work. To retire or relocate
+the checkout, finish pending work, release readers, disable it, and then use
+`clear-main-upkeep` before moving it. Configure its new identity explicitly.
 
 ## Bind an existing writer
 

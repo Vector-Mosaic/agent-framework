@@ -10,6 +10,7 @@ from default loading; retrieve a record when the task needs that evidence.
 
 | Record | Evidence scope |
 |---|---|
+| [November 20 checkout and capacity](qualification.md#november-20-checkout-and-capacity) | Linux maintained-checkout deferral and recovery, REPL attribution, and public capacity coordination. |
 | [November 11 total meaning and continuity update](qualification.md#november-11-total-meaning-and-continuity-update) | Current instruction/continuity update and focused Windows/Linux qualification. |
 | [November 10 continuity maintenance](qualification.md#november-10-continuity-maintenance) | Earlier Windows/Linux conditional-mutation and navigation qualification. |
 | [First release](qualification.md#first-release-environments-and-source) | Original platform, credential, browser and integration qualification and its limits. |

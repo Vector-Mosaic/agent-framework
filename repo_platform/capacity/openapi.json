@@ -1,0 +1,22 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Apeiros Linux capacity", "version": "0.1.0", "description": "Private Unix-domain HTTP at the explicitly selected state directory's capacity.sock. No TCP listener. Native account access follows filesystem ownership; operation authority and workload validity remain at their owners."},
+  "servers": [{"url": "http://localhost", "description": "HTTP authority used with the selected Unix socket, never a network listener."}],
+  "paths": {
+    "/v1/capacity": {
+      "get": {
+        "operationId": "inspectCapacity",
+        "summary": "Passively read complete host capacity snapshot (legacy machine contract)",
+        "responses": {"200": {"description": "Current state; process presence, readiness and workload completion are not inferred.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Result"}}}}, "409": {"description": "State unavailable or physical-host mismatch; repair the exact owner without fallback."}}
+      },
+      "post": {
+        "operationId": "operateCapacity",
+        "summary": "Execute the same typed action as the CLI and stdio MCP",
+        "description": "overview, help, inspect, assess, follow, cpu_policy and io_policy are passive. Start with overview for bounded current inspection. inspect without view and GET retain complete-state machine snapshots; explicit views expose source-bound pages. help exposes the selected action schema and conditions. observation delegates focused reads and exact scoped controls through the same owner. Admission reserves without launch. request_demand_change selects a reusable domain-qualified phase envelope on the original active allocation; growth joins existing fairness and preserves current demand until granted. cancel_demand_change cancels only ungranted growth. Granted quantities remain legacy-readable; final dispatch and independent holds still apply. Ended native boot accounting excludes only the old volatile physical contribution, preserving logical recovery and storage. Holds exclude participating future dispatch while earlier native queues may remain uncertain. Release requires actual owner evidence and exact revision. Maintenance records native outcomes and releases only its own verified hold. Policy reconfiguration preserves work. Explicit io_limits use actual native io.max with exact policy revision and scoped ending conditions. Explicitly enrolled qualified pressure controllers can request actual domain save/release and pressure-owned eligible continuation; owner validity and independent holds remain effective. No arbitrary stop or updater is exposed.",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "request.schema.json"}}}},
+        "responses": {"200": {"description": "Handler result; applied/uncertain/native partial effects retain their action-specific fields.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Result"}}}}, "409": {"description": "Invalid/stale/unavailable action. Inspect original identity before retry; do not blindly renew a revision.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Result"}}}}}
+      }
+    }
+  },
+  "components": {"schemas": {"Result": {"type": "object", "required": ["ok"], "properties": {"ok": {"type": "boolean"}, "data": {"type": "object"}, "error": {"type": "string"}, "retry": {"type": "string"}}}}}
+}

@@ -7,6 +7,7 @@ This module never creates a worktree, stashes source, or provides backup history
 from __future__ import annotations
 
 import contextlib
+import errno
 import hashlib
 import json
 import os
@@ -15,14 +16,17 @@ import shutil
 import stat
 import subprocess
 import tempfile
+import time
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterator, Mapping, Sequence
+from typing import Any, Callable, Iterator, Mapping, Sequence
 
 
 SCHEMA = "agent_framework.concurrent_binding.v1"
 CANDIDATE_SCHEMA = "agent_framework.concurrent_candidate.v1"
 DEFAULT_SHARED_BRANCH = "main"
 DEFAULT_REMOTE = "origin"
+# Invalid as a public binding ID, valid as a Git ref component.
+_MAINTAINED = "_maintained-checkout"
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 _OID = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 
@@ -185,7 +189,7 @@ def _atomic_write(path: Path, value: Mapping[str, Any]) -> None:
 
 
 @contextlib.contextmanager
-def _lock(path: Path) -> Iterator[None]:
+def _lock(path: Path, *, blocking: bool = False) -> Iterator[None]:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a+b") as stream:
         if stream.tell() == 0:
@@ -195,10 +199,17 @@ def _lock(path: Path) -> Iterator[None]:
         try:
             if os.name == "nt":
                 import msvcrt
-                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                while True:
+                    try:
+                        msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+                        break
+                    except OSError as exc:
+                        if not blocking or exc.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK):
+                            raise
+                        time.sleep(.05)
             else:
                 import fcntl
-                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX if blocking else fcntl.LOCK_EX | fcntl.LOCK_NB)
         except OSError:
             _fail("binding_busy", "Another operation currently owns this integration binding.")
         try:
@@ -248,11 +259,30 @@ class ConcurrentDevelopment:
             self.state_root = state_home / "concurrent-development"
         self.directory = self.state_root.resolve() / self.repository
 
+    def _upkeep_boundary(self, *, observed=None, discover=False):
+        # With no opted-in primary, ordinary integrations retain their previous
+        # behavior. A deferred physical refresh is independent of publication.
+        if not (self.common / "agent-framework/main-upkeep/state.json").exists():
+            return {}
+        from .main_upkeep import MainUpkeep
+        upkeep = MainUpkeep(self)
+        try:
+            outcome = upkeep.request_verified(observed) if observed is not None else upkeep.attempt(discover=discover)
+        except (ConcurrentDevelopmentError, OSError, ValueError) as error:
+            reason = error.code if isinstance(error, ConcurrentDevelopmentError) else "main_upkeep_unavailable"
+            outcome = {"status": "deferred", "reason": reason}
+        return {"main_upkeep": outcome}
+
     def _file(self, binding_id: str) -> Path:
+        if binding_id == _MAINTAINED:
+            return self.common / "concurrent-development" / "maintained-transaction-owner.json"
         return self.directory / f"{_identifier(binding_id)}.json"
 
     @contextlib.contextmanager
-    def _locked(self, binding_id: str, *, allow_refresh_reconciliation: bool = False) -> Iterator[dict[str, Any]]:
+    def _locked(self, binding_id: str, *, allow_refresh_reconciliation: bool = False,
+                _maintained: bool = False) -> Iterator[dict[str, Any]]:
+        if not (_maintained and binding_id == _MAINTAINED):
+            _identifier(binding_id)
         with _lock(self._file(binding_id).with_suffix(".lock")):
             self._check_relocation()
             binding = self._load(binding_id)
@@ -284,7 +314,7 @@ class ConcurrentDevelopment:
             value = json.loads(self._file(binding_id).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             _fail("binding_missing", "The exact integration binding is missing or unreadable.")
-        if (value.get("schema") != SCHEMA or value.get("binding_id") != binding_id or
+        if (not isinstance(value, dict) or value.get("schema") != SCHEMA or value.get("binding_id") != binding_id or
                 value.get("repository") != self.repository or
                 value.get("workspace") != self.root.as_posix() or
                 value.get("git_common_dir") != self.common.as_posix() or
@@ -312,9 +342,129 @@ class ConcurrentDevelopment:
     def _index_path(self) -> Path:
         return Path(_text(self.root, ["rev-parse", "--path-format=absolute", "--git-path", "index"]))
 
-    def _check_source_operation(self) -> None:
-        for name in ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "rebase-merge", "rebase-apply", "index.lock"):
-            if (self.git_dir / name).exists():
+    def _require_maintained_checkout(self) -> None:
+        if (self.git_dir != self.common or self.common != self.root / ".git"
+                or _text(self.root, ["symbolic-ref", "-q", "HEAD"], check=False) != self.shared_ref):
+            _fail("maintained_checkout_required", "Select the physical primary checkout attached to the configured shared branch.")
+        self._check_relocation()
+        for path in self.directory.glob("*.json"):
+            try:
+                binding = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(binding, dict) or not isinstance(binding.get("workspace"), str):
+                    raise ValueError
+            except (OSError, ValueError):
+                _fail("binding_unreadable", "The checkout's existing source owners could not be established.")
+            if Path(binding["workspace"]) == self.root:
+                _fail("maintained_checkout_owned", "An existing writer owns this primary checkout.")
+
+    def _maintained_writer_lock(self) -> Path:
+        return self.common / "concurrent-development" / "maintained-writer.lock"
+
+    def _maintained_directories(self) -> list[list[int]]:
+        identity = []
+        for path in (self.root, self.common):
+            entry = path.stat()
+            if not entry.st_ino or not stat.S_ISDIR(entry.st_mode):
+                _fail("main_upkeep_identity_unavailable", "The physical primary's directory identities are unavailable.")
+            identity.append([entry.st_dev, entry.st_ino])
+        return identity
+
+    def maintained_refresh_pending(self) -> str | None:
+        """A physical journal fences new readers even when the caller uses another state root."""
+        if self.git_dir != self.common or self.common != self.root / ".git":
+            _fail("maintained_checkout_required", "Read the journal at its physical primary checkout.")
+        own = self._refresh_directory(_MAINTAINED)
+        for path in own.parent.glob("refresh-*"):
+            if path != own:
+                _fail("foreign_refresh_journal", "Reconcile the existing workspace refresh with its owning binding.")
+        if not self._file(_MAINTAINED).exists():
+            if own.exists():
+                _fail("maintained_journal_unowned", "The physical refresh journal has no matching owner.")
+            return None
+        binding = self._load(_MAINTAINED)
+        if (binding.get("workspace_ref") != self.shared_ref or binding.get("lifecycle_owner") != "maintained_checkout"
+                or binding.get("physical_directories") != self._maintained_directories()):
+            _fail("maintained_journal_unowned", "The interrupted refresh belongs to another checkout identity.")
+        transaction = binding.get("refresh_operation")
+        if transaction is not None and not own.is_dir():
+            _fail("refresh_transaction_changed", "The maintained checkout's active refresh journal is missing.")
+        if not own.exists():
+            return None
+        target = binding.get("intent_target")
+        if (not isinstance(target, str) or not _OID.fullmatch(target)
+                or transaction is not None and (not isinstance(transaction, dict) or transaction.get("target") != target
+                    or transaction.get("binding_id") != _MAINTAINED or transaction.get("symbolic_head") != self.shared_ref
+                    or transaction.get("head_after") != target or transaction.get("head_before") != binding.get("base"))):
+            _fail("refresh_transaction_changed", "The maintained checkout's refresh identity could not be established.")
+        return target
+
+    def refresh_maintained(self, target: str, *, protected_paths: Sequence[str] = (),
+                          expected_head: str | None = None,
+                          before_install: Callable[[], None] | None = None) -> dict[str, Any]:
+        """Incorporate under the upkeep owner's existing input and native-consumer admission."""
+        # Only this physical writer stays excluded for the installation. Other
+        # worktrees can bind or publish while the maintained checkout refreshes.
+        with _lock(self._maintained_writer_lock()):
+            with _lock(self.directory / "bindings.lock"):
+                self._require_maintained_checkout()
+            interrupted = self.maintained_refresh_pending()
+            owner = self._file(_MAINTAINED)
+            journal = self._refresh_directory(_MAINTAINED)
+            if interrupted:
+                binding = self._load(_MAINTAINED)
+                transaction = binding.get("refresh_operation")
+                if transaction:
+                    self._check_source_operation(owned_index=journal / "index_after")
+                    if not self._included(interrupted, self._shared()):
+                        _fail("target_not_shared", "Reconcile the interrupted target with the current shared branch.")
+                    result = self._reconcile_refresh(binding, "finish", before_install=before_install)
+                    owner.unlink()
+                    return result
+                # Installation starts only after the active transaction has
+                # been saved. After installation its marker is cleared before
+                # releasing the retained ref and journal. Both edges are safe
+                # to finish under admission using this exact private owner.
+                manifest = journal / "transaction.json"
+                if manifest.exists():
+                    try:
+                        finished = json.loads(manifest.read_text(encoding="utf-8"))
+                        if (not isinstance(finished, dict) or finished.get("binding_id") != _MAINTAINED
+                                or finished.get("schema") != "agent_framework.concurrent_refresh.v1"
+                                or finished.get("target") != interrupted
+                                or not isinstance(finished.get("retained_commit"), str)
+                                or not _OID.fullmatch(finished["retained_commit"])):
+                            raise ValueError
+                    except (ValueError, OSError):
+                        _fail("refresh_transaction_changed", "The physical refresh journal differs from its owner.")
+                    self._release_refresh_ref(_MAINTAINED, finished)
+                self._remove_refresh_directory(_MAINTAINED)
+            target = _oid(self.root, target)
+            head = self._head()
+            if expected_head is not None and head != expected_head:
+                _fail("refresh_head_changed", "The maintained branch changed since input admission.")
+            if target == head:
+                owner.unlink(missing_ok=True)
+                return {"status": "current", "base": head, "workspace_head": head}
+            binding = {"schema": SCHEMA, "binding_id": _MAINTAINED, "lifecycle_owner": "maintained_checkout",
+                       "repository": self.repository, "workspace": self.root.as_posix(),
+                       "git_common_dir": self.common.as_posix(), "workspace_ref": self.shared_ref,
+                       "remote": self.remote, "shared_ref": self.shared_ref, "generation": 0,
+                       "base": head, "owned_paths": [], "intent_target": target,
+                       "physical_directories": self._maintained_directories()}
+            self._save(binding)
+            try:
+                return self.refresh(_MAINTAINED, target, 0, _maintained=True, _protected_paths=protected_paths,
+                                    _before_install=before_install)
+            finally:
+                if not journal.exists():
+                    owner.unlink(missing_ok=True)
+
+    def _check_source_operation(self, *, owned_index: Path | None = None) -> None:
+        for name in ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD", "rebase-merge", "rebase-apply", "sequencer", "BISECT_START", "index.lock"):
+            marker = self.git_dir / name
+            if marker.exists():
+                if name == "index.lock" and owned_index is not None and owned_index.exists() and marker.samefile(owned_index):
+                    continue
                 _fail("workspace_operation_active", "Finish the existing Git operation before integration.", marker=name)
         if _git(self.root, ["ls-files", "--unmerged", "-z"]).stdout:
             _fail("unmerged_index", "Resolve the actual index before source integration.")
@@ -384,6 +534,11 @@ class ConcurrentDevelopment:
         paths = sorted({_safe_path(self.root, p) for p in owned_paths})
         with _lock(self.directory / "bindings.lock"):
             self._check_relocation()
+            if self.git_dir == self.common and self._maintained_writer_lock().exists():
+                # Refresh takes the same physical lock, then examines bindings
+                # under this registry lock. A racing primary writer must retry.
+                with _lock(self._maintained_writer_lock()):
+                    pass
             if self._file(binding_id).exists():
                 value = self._load(binding_id)
                 if value["owner_id"] != owner_id or value["lifecycle_owner"] != lifecycle_owner:
@@ -406,7 +561,7 @@ class ConcurrentDevelopment:
             return value
 
     def status(self, binding_id: str) -> dict[str, Any]:
-        value = self._load(binding_id)
+        value = self._load(_identifier(binding_id))
         return {"binding": value, "head": self._head(), "network_read": False}
 
     def release_binding(self, binding_id: str, owner_id: str) -> dict[str, Any]:
@@ -416,7 +571,8 @@ class ConcurrentDevelopment:
             if binding.get("candidate") is not None:
                 _fail("candidate_unfinished", "Close the candidate and its actual consumers before releasing the workspace binding.")
             self._file(binding_id).unlink()
-            return {"status": "binding_released", "binding_id": binding_id, "workspace_removed": False}
+        return {"status": "binding_released", "binding_id": binding_id, "workspace_removed": False,
+                **self._upkeep_boundary()}
 
     def _candidate(self, binding: Mapping[str, Any], candidate_id: str,
                    *, require_current: bool = True) -> dict[str, Any]:
@@ -614,7 +770,8 @@ class ConcurrentDevelopment:
                 candidate.pop("publication_uncertain", None)
                 self._save(binding)
                 return {"status": "already_included", "commit": descriptor["commit"],
-                        "observed": current, "refresh_required": not candidate.get("incorporated", False)}
+                        "observed": current, "refresh_required": not candidate.get("incorporated", False),
+                        **self._upkeep_boundary(observed=current)}
             if current != expected_shared:
                 candidate.pop("publication_uncertain", None)
                 self._save(binding)
@@ -641,7 +798,8 @@ class ConcurrentDevelopment:
                 candidate.pop("publication_uncertain", None)
                 self._save(binding)
                 return {"status": "published", "commit": descriptor["commit"], "observed": observed,
-                        "refresh_required": True, "transport_exit_code": transport_exit}
+                        "refresh_required": True, "transport_exit_code": transport_exit,
+                        **self._upkeep_boundary(observed=observed)}
             candidate.pop("publication_uncertain", None)
             self._save(binding)
             return {"status": "stale" if observed != expected_shared else "not_published",
@@ -678,13 +836,16 @@ class ConcurrentDevelopment:
             candidate = self._candidate(binding, candidate_id, require_current=False)
             candidate["consumers"] = [item for item in candidate["consumers"] if item != _identifier(job_id)]
             self._save(binding)
-            return {"status": "released", "remaining_consumers": candidate["consumers"]}
+            remaining = candidate["consumers"]
+        return {"status": "released", "remaining_consumers": remaining, **self._upkeep_boundary()}
 
     def refresh(self, binding_id: str, target: str, expected_generation: int,
                 resolved_source_tree: str | None = None, resolved_index_tree: str | None = None,
                 resolved_head_tree: str | None = None, expected_base: str | None = None,
                 expected_source_tree: str | None = None, expected_head: str | None = None,
-                expected_index_tree: str | None = None) -> dict[str, Any]:
+                expected_index_tree: str | None = None, *, _maintained: bool = False,
+                _protected_paths: Sequence[str] = (),
+                _before_install: Callable[[], None] | None = None) -> dict[str, Any]:
         if any((resolved_source_tree, resolved_index_tree, resolved_head_tree)) and expected_base is None:
             _fail("resolution_inputs_required", "Every explicit refresh resolution requires its exact incorporated base.")
         if resolved_source_tree is not None and expected_source_tree is None:
@@ -693,7 +854,7 @@ class ConcurrentDevelopment:
             _fail("resolution_inputs_required", "A HEAD or index resolution requires its exact existing HEAD input.")
         if resolved_index_tree is not None and expected_index_tree is None:
             _fail("resolution_inputs_required", "An index resolution requires the exact staged tree it resolved.")
-        with self._locked(binding_id) as binding:
+        with self._locked(binding_id, _maintained=_maintained) as binding:
             if binding["generation"] != expected_generation:
                 _fail("generation_changed", "Inspect and recombine the current binding before refreshing its workspace.",
                       expected=expected_generation, observed=binding["generation"])
@@ -705,9 +866,15 @@ class ConcurrentDevelopment:
             if not self._included(binding["base"], target):
                 _fail("refresh_would_rewind", "Refresh must retain the shared base already incorporated by this workspace.")
             symbolic = _text(self.root, ["symbolic-ref", "-q", "HEAD"], check=False)
-            if (symbolic or None) != binding["workspace_ref"] or symbolic == self.shared_ref:
-                _fail("workspace_branch_protected", "Refresh requires the originally bound detached HEAD or owned feature branch; the shared branch is protected.")
             head = self._head()
+            if _maintained:
+                if (binding_id != _MAINTAINED or binding.get("lifecycle_owner") != "maintained_checkout"
+                        or self.git_dir != self.common or symbolic != self.shared_ref):
+                    _fail("maintained_checkout_required", "The configured primary checkout and its attached shared branch are required.")
+                if head != binding["base"] or not self._included(head, target):
+                    _fail("main_checkout_not_fast_forward", "The shared target must retain the maintained checkout's local history.")
+            elif (symbolic or None) != binding["workspace_ref"] or symbolic == self.shared_ref:
+                _fail("workspace_branch_protected", "Refresh requires the originally bound detached HEAD or owned feature branch; the shared branch is protected.")
             index_path = self._index_path()
             original_index = index_path.read_bytes()
             before = self._capture(binding["base"], None, binding["owned_paths"])
@@ -781,10 +948,19 @@ class ConcurrentDevelopment:
                 # index flags and stage selections, rather than rebuilding it.
                 old_entries = _entries(self.root, staged)
                 new_entries = _entries(self.root, next_index_tree)
+                index_paths = sorted(path for path in old_entries.keys() | new_entries.keys()
+                                     if old_entries.get(path) != new_entries.get(path))
+                if _protected_paths:
+                    # Local renames can send merged writes outside head..target.
+                    # Check the actual installation and index changes under admission.
+                    worktree_paths = _paths(_git(self.root, ["diff", "--no-renames", "--name-only", "-z", before, after]).stdout)
+                    for selector in _protected_paths:
+                        held = Path(_safe_path(self.root, selector))
+                        if any(path.is_relative_to(held) or held.is_relative_to(path)
+                               for path in map(Path, [*worktree_paths, *index_paths])):
+                            _fail("main_input_hold", "The planned checkout changes intersect an active input hold.")
                 changes = []
-                for path in sorted(set(old_entries) | set(new_entries)):
-                    if old_entries.get(path) == new_entries.get(path):
-                        continue
+                for path in index_paths:
                     mode, oid = new_entries.get(path, ("0", "0" * len(head)))
                     changes.append(f"{mode} {oid}\t{path}".encode("utf-8", "surrogateescape"))
                 if changes:
@@ -792,12 +968,13 @@ class ConcurrentDevelopment:
                          data=b"\0".join(changes) + b"\0")
                 replacement_index = private_index.read_bytes()
                 self._install_source(before, after, original_index, replacement_index,
-                                     head, new_head, binding, target, operation)
+                                     head, new_head, binding, target, operation, _before_install)
             return {"status": "refreshed", "base": target, "workspace_head": new_head,
                     "source_tree": after, "index_tree": next_index_tree}
 
     def _install_source(self, before: str, after: str, index_before: bytes, index_after: bytes,
-                        head_before: str, head_after: str, binding: dict[str, Any], target: str, operation: Path) -> None:
+                        head_before: str, head_after: str, binding: dict[str, Any], target: str, operation: Path,
+                        before_install: Callable[[], None] | None = None) -> None:
         previous, following = _entries(self.root, before), _entries(self.root, after)
         changed = sorted(path for path in set(previous) | set(following)
                          if previous.get(path) != following.get(path))
@@ -818,6 +995,8 @@ class ConcurrentDevelopment:
                  index=checkout_index, data=b"\0".join(p.encode("utf-8", "surrogateescape") for p in installs) + b"\0")
         # Exactly one active source mutation transaction is retained across a
         # killed process. It is not a periodic checkpoint or task backup.
+        if binding["binding_id"] == _MAINTAINED and binding["physical_directories"] != self._maintained_directories():
+            _fail("maintained_journal_unowned", "The physical checkout changed during source preparation.")
         durable = self._refresh_directory(binding["binding_id"])
         if durable.exists():
             _fail("refresh_operation_exists", "Reconcile or remove the completed exact refresh transaction before starting another.")
@@ -830,6 +1009,9 @@ class ConcurrentDevelopment:
             source = self.root / path
             prior = originals / path
             if os.path.lexists(source):
+                if path not in previous:
+                    self._remove_refresh_directory(binding["binding_id"])
+                    _fail("untracked_collision", "A new local path appeared before source installation.", path=path)
                 prior.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, prior)
                 self._sync_file(prior)
@@ -847,21 +1029,22 @@ class ConcurrentDevelopment:
         transaction = {"schema": "agent_framework.concurrent_refresh.v1", "binding_id": binding["binding_id"],
                        "before": before, "after": after, "base": binding["base"], "target": target,
                        "head_before": head_before, "head_after": head_after,
-                       "symbolic_head": _text(self.root, ["symbolic-ref", "-q", "HEAD"], check=False),
+                       "symbolic_head": binding["workspace_ref"] or "",
                        "index_before": hashlib.sha256(index_before).hexdigest(),
                        "index_after": hashlib.sha256(index_after).hexdigest(), "paths": fingerprints,
                        "retained_commit": retained_commit}
         _atomic_write(durable / "transaction.json", transaction)
-        if (self._head() != head_before or self._index_path().read_bytes() != index_before or
+        if (_text(self.root, ["symbolic-ref", "-q", "HEAD"], check=False) != transaction["symbolic_head"] or
+                self._head() != head_before or self._index_path().read_bytes() != index_before or
                 self._capture(binding["base"], None, binding["owned_paths"]) != before):
             self._remove_refresh_directory(binding["binding_id"])
             _fail("workspace_changed", "Source or staging changed before refresh; no files were installed.")
         binding["refresh_operation"] = transaction
         self._save(binding)
-        self._reconcile_refresh(binding, "finish")
+        self._reconcile_refresh(binding, "finish", before_install=before_install, fresh=True)
 
     def _refresh_directory(self, binding_id: str) -> Path:
-        return self.git_dir / "concurrent-development" / f"refresh-{_identifier(binding_id)}"
+        return self.git_dir / "concurrent-development" / f"refresh-{_MAINTAINED if binding_id == _MAINTAINED else _identifier(binding_id)}"
 
     def _remove_refresh_directory(self, binding_id: str) -> None:
         directory = self._refresh_directory(binding_id)
@@ -904,7 +1087,8 @@ class ConcurrentDevelopment:
                 return {"status": "no_pending_refresh", "workspace_removed": False}
             return self._reconcile_refresh(binding, outcome)
 
-    def _reconcile_refresh(self, binding: dict[str, Any], outcome: str) -> dict[str, Any]:
+    def _reconcile_refresh(self, binding: dict[str, Any], outcome: str, *,
+                           before_install: Callable[[], None] | None = None, fresh: bool = False) -> dict[str, Any]:
         transaction = binding["refresh_operation"]
         directory = self._refresh_directory(binding["binding_id"])
         manifest = json.loads((directory / "transaction.json").read_text())
@@ -935,6 +1119,19 @@ class ConcurrentDevelopment:
             retained = directory / ("checkout" if desired == "after" else "originals") / path
             if self._fingerprint(retained) != fingerprints[desired]:
                 _fail("refresh_transaction_changed", "The retained source input for this operation changed.", path=path)
+        if before_install is not None:
+            try:
+                before_install()
+            except BaseException:
+                # A fresh plan has yet to touch any source or the real index.
+                # Its eventual retry must observe new local edits normally.
+                # An interrupted installer keeps its journal and exact inputs.
+                if fresh:
+                    binding.pop("refresh_operation")
+                    self._save(binding)
+                    self._release_refresh_ref(binding["binding_id"], transaction)
+                    self._remove_refresh_directory(binding["binding_id"])
+                raise
         lock_path = index_path.with_name(index_path.name + ".lock")
         # A same-volume hard link publishes the complete lock bytes atomically;
         # its identity remains provable even if the process dies immediately.
@@ -973,7 +1170,7 @@ class ConcurrentDevelopment:
         desired_head = transaction[f"head_{desired}"]
         if _text(self.root, ["symbolic-ref", "-q", "HEAD"], check=False) != transaction["symbolic_head"]:
             _fail("refresh_head_changed", "The workspace changed its attached branch during refresh; preserve it for reconciliation.")
-        _git(self.root, ["update-ref", "-m", "concurrent development refresh", "HEAD", desired_head, expected_head])
+        _git(self.root, ["update-ref", "-m", "concurrent development refresh", transaction["symbolic_head"] or "HEAD", desired_head, expected_head])
         index_install = directory / "install-index"
         shutil.copy2(directory / f"index_{desired}", index_install)
         self._sync_file(index_install)
@@ -1026,7 +1223,8 @@ class ConcurrentDevelopment:
                 _git(self.root, ["update-ref", "-d", state_ref, candidate["operation_tree"]])
             binding["candidate"] = None
             self._save(binding)
-            return {"status": "closed", "workspace_removed": False, "binding_id": binding_id}
+        return {"status": "closed", "workspace_removed": False, "binding_id": binding_id,
+                **self._upkeep_boundary(discover=True)}
 
 
 def validate_candidate_descriptor(value: Mapping[str, Any]) -> dict[str, Any]:

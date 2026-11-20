@@ -2,6 +2,10 @@
 
 ## One coherent framework
 
+Apeiros works alongside an agent client. The client runs the model and tool
+loop. Apeiros supplies operating instructions, task continuity, and tools that
+agents can use to share source and compute resources.
+
 The framework describes how an agent should preserve the user's intended outcome,
 authority, relevant context, judgment and continuity through real work. It is not
 a scheduler or a replacement reasoning engine. Its complete owners are the
@@ -34,7 +38,8 @@ that the framework reserves for its owner remain human decisions.
 | `scripts/tools/` | Small user-facing command entrypoints with discoverable usage. |
 | `repo_platform/tooling/` | Shared task-overlay, configuration and command-contract implementation. |
 | `repo_platform/credentials/` | Protected local custody and explicit delivery adapters. |
-| `repo_platform/concurrent_development/` | Optional Git workspace binding and conditional integration. |
+| `repo_platform/concurrent_development/` | Git workspace binding, conditional integration, and opt-in guarded refresh of a maintained checkout. |
+| `repo_platform/capacity/` | Optional Linux capacity coordinator shared by the CLI, local service and MCP interface. |
 | `docs/integrations/` | Independently selected browser, clipboard, terminal and Runner integration conditions. |
 
 Only operational prerequisites needed for a selected feature apply. Reading the

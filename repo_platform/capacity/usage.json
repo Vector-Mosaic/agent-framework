@@ -1,0 +1,595 @@
+{
+  "tool_id": "tool.capacity",
+  "version": "0.1.0",
+  "syntax": "apeiros-capacity [--state-root ABS] usage|request|serve|mcp|dispatch|guard",
+  "state_selection": "explicit --state-root or APEIROS_CAPACITY_STATE_ROOT; never defaults to another host",
+  "request": "One JSON object on stdin; result JSON on stdout. Begin with overview for routine current read or help for offline action discovery. inspect without view and legacy follow remain complete-state machine contracts. Other effects are action-specific.",
+  "actions": {
+    "initialize": {
+      "policy": {
+        "host_id": "canonical host id",
+        "resources": {
+          "ram": {
+            "unit": "bytes",
+            "capacity": 1,
+            "operational_margin": 0,
+            "priority_growth_margin": 0,
+            "observation_max_age_ms": 10000
+          }
+        },
+        "cpu_aggregates": {},
+        "machine_id": "exact /etc/machine-id of intended host"
+      }
+    },
+    "inspect": {
+      "view": "omit only for existing complete-state machine snapshot; otherwise focused view as overview"
+    },
+    "assess": {
+      "request": "Request"
+    },
+    "admit": {
+      "request": "Request"
+    },
+    "admit_if_fit": {
+      "request": "Request"
+    },
+    "observe": {
+      "observation": "Observation"
+    },
+    "observe_native": {},
+    "schedule": {},
+    "hold": {
+      "hold": {
+        "hold_id": "exact maintenance/user operation",
+        "owner_ref": "owner",
+        "reason": "reason",
+        "scope": {
+          "host_id": "host",
+          "system_ids": [],
+          "operation_ids": [],
+          "resource_ids": []
+        },
+        "revision": 0
+      }
+    },
+    "release_hold": {
+      "hold_id": "id",
+      "owner_ref": "same owner",
+      "revision": "observed hold revision"
+    },
+    "release": {
+      "allocation_id": "id",
+      "revision": "observed allocation revision",
+      "evidence": "ReleaseEvidence"
+    },
+    "reconcile_step": {
+      "allocation_id": "id",
+      "revision": "observed allocation revision",
+      "owner_ref": "owner",
+      "step_id": "exact original step",
+      "outcome": "applied|failed|uncertain",
+      "evidence_ref": "actual owner observation"
+    },
+    "bind_runtime": {
+      "allocation_id": "id",
+      "revision": "observed revision",
+      "owner_ref": "bound owner",
+      "binding": {
+        "process": {
+          "boot_id": "boot",
+          "pid": "native pid",
+          "start_ticks": "proc start"
+        },
+        "cgroup": "exact nonroot host cgroup v2 path",
+        "supervisor_ref": "actual domain supervisor/container/VM"
+      }
+    },
+    "maintenance_prepare": {
+      "maintenance": {
+        "operation_id": "stable native maintenance operation",
+        "owner_ref": "owner",
+        "change_ref": "intended change",
+        "hold_id": "unique hold",
+        "scope": {
+          "host_id": "host",
+          "system_ids": [],
+          "operation_ids": [],
+          "resource_ids": []
+        },
+        "revision": 0,
+        "stage": "held",
+        "evidence_refs": {}
+      }
+    },
+    "maintenance_record": {
+      "operation_id": "id",
+      "owner_ref": "same owner",
+      "revision": "observed operation revision",
+      "stage": "drained|installed|activated|verified|uncertain",
+      "evidence_refs": {
+        "meaning": "actual native/domain evidence reference"
+      }
+    },
+    "maintenance_finish": {
+      "operation_id": "id",
+      "owner_ref": "same owner",
+      "revision": "observed operation revision"
+    },
+    "follow": {
+      "after_source": "observed state instance_id",
+      "after_revision": "observed state revision",
+      "timeout_ms": "0..30000"
+    },
+    "cpu_policy": {},
+    "apply_cpu_policy": {
+      "revision": "observed capacity state revision"
+    },
+    "succeed_pressure_control": {
+      "expected_source": "exact host_id and instance_id",
+      "expected_policy_revision": "current physical policy revision",
+      "expected_scheduling_revision": "current revision, zero if no scheduling selection",
+      "expected_reservations": "the complete current reservation selection, or null when absent",
+      "system_id": "one enrolled domain with an existing control",
+      "previous_control": "exact currently installed DomainControl",
+      "control": "qualified immutable successor DomainControl",
+      "change_ref": "authority and acceptance evidence for this transition"
+    },
+    "reconfigure_policy": {
+      "revision": "observed state.policy_revision (not observation/state revision)",
+      "policy": "complete Policy with unchanged physical host and live resource/aggregate identities",
+      "change_ref": "actual policy decision/evidence"
+    },
+    "pressure_tick": {},
+    "io_policy": {},
+    "apply_io_policy": {
+      "revision": "observed state.policy_revision"
+    },
+    "adopt_runtime": {
+      "expected_instance_id": "observed state.instance_id",
+      "expected_policy_revision": "observed state.policy_revision",
+      "request": "Request for the exact existing operation and native attempt",
+      "binding": "RuntimeBinding as in bind_runtime; whole owned accounting domain below the aggregate",
+      "evidence_ref": "actual domain UUID/supervisor, existing authority, source/configuration and native incarnation evidence"
+    },
+    "observation": {
+      "operation": "overview|inspect|follow|evidence|controls|control|diagnostic",
+      "host_id": "exact policy host_id",
+      "allocation_id": "optional exact allocation, never latest",
+      "limit": "1..100",
+      "timeout_ms": "100..30000",
+      "parameters": "Read: view, source, after_id (or retained after_allocation_id), exact original cursor for follow. Follow cursor is bound to source/view/allocation. Evidence requires allocation_id. Controls use original action/source/revision and exact owner fields. Paging uses returned source/view/after_id; separate state revisions remain visible."
+    },
+    "overview": {
+      "view": "current by default; current|history|allocation|policy|holds|pressure|gpu_pressure|maintenance",
+      "allocation_id": "required only for allocation view",
+      "limit": "1..100, default25",
+      "source": "returned exact instance/host; required with after_id",
+      "after_id": "returned exclusive page position; allocation view pages contributing commitments"
+    },
+    "help": {
+      "operation": "optional exact action; offline schema/effects/prerequisites/outcomes/recovery"
+    },
+    "configure_scheduling": {
+      "expected_instance_id": "exact capacity state owner",
+      "expected_policy_revision": "observed physical policy revision",
+      "revision": "observed scheduling revision;0 before absent file",
+      "configuration": "complete SchedulingConfiguration at revision+1",
+      "expected_allocations": "map of every affected nonreleased allocation to its exact revision, immutable request and runtime"
+    },
+    "request_demand_change": {
+      "change": "WorkingDemandChange",
+      "expected_source": {
+        "instance_id": "observed instance",
+        "host_id": "observed host"
+      }
+    },
+    "cancel_demand_change": {
+      "allocation_id": "exact active allocation",
+      "change_id": "original pending change",
+      "owner_ref": "original owner",
+      "expected_source": {
+        "instance_id": "observed instance",
+        "host_id": "observed host"
+      }
+    },
+    "configure_reservations": {
+      "expected_instance_id": "exact capacity state owner",
+      "expected_policy_revision": "observed guarded physical policy revision",
+      "revision": "observed scheduling revision;0 if absent",
+      "reservations": "GPUReservations or null for explicit credit removal; guarded physical policy unchanged",
+      "change_ref": "competent persistent reservation selection/removal authority"
+    },
+    "configure_resource_preferences": {
+      "expected_source": "exact host_id and instance_id",
+      "expected_policy_revision": "observed physical policy revision",
+      "revision": "observed preference revision, zero if absent",
+      "resources": "complete mapping of native GPU resource ids to {system_id, gpu_uuid}. Empty clears selection.",
+      "change_ref": "reference to the accepted GPU precedence decision"
+    }
+  },
+  "Request": {
+    "allocation_id": "caller-stable identity",
+    "host_id": "selected host",
+    "system_id": "actual aggregate",
+    "owner_ref": "domain record",
+    "operation_id": "operation",
+    "attempt_id": "exact incarnation",
+    "source_ref": "exact source",
+    "configuration_ref": "config identity",
+    "priority": "priority|normal",
+    "demand": {
+      "physical resource identity": "positive quantity"
+    },
+    "eligibility_ref": "actual fit evidence",
+    "release_route": "domain-owned save/exit/release"
+  },
+  "Observation": {
+    "host_id": "host",
+    "boot_id": "native boot",
+    "observed_at_ms": "unix milliseconds",
+    "source_ref": "actual bounded observation",
+    "external_demand": {
+      "resource": "unmanaged demand"
+    },
+    "accounted_allocations": {
+      "id": "exact revision excluded from external demand"
+    },
+    "managed_demand": {
+      "allocation id": {
+        "resource": "observed quantity (commitment is max of observed and requested)"
+      }
+    },
+    "unavailable": {
+      "resource": "failure reason"
+    },
+    "coverage": "Keys in external_demand/unavailable identify the covered resource observations; omitted resources retain their actual original observation time. Native refresh does not overwrite other owner observations."
+  },
+  "native_observation": "Resource policy native supports memory, cpu with explicit eligible_cpus, gpu_memory with exact UUID, or filesystem with exact mountpoint/source. CPU requires two same-boot samples. Missing resources remain unavailable; cgroup incarnation/overlap and mount identities are enforced. No data contents are read. io_bandwidth uses exact mounted filesystem UUID and whole-backend read+write intervals, including external demand and actual bound cgroup attribution; capacity_evidence_ref identifies measured service-level capacity, not a discovered hardware limit. Stacked backends require their actual joined owner. Filesystem source accepts native /dev/disk/by-uuid paths, verified against mount device identity.",
+  "ReleaseEvidence": {
+    "owner_ref": "bound owner",
+    "attempt_id": "bound attempt",
+    "boot_id": "original execution boot for adopted runtimes; observed native release evidence retains the current observer/boot separately",
+    "continuation_ref": "saved state or null for completed work",
+    "execution_exited_ref": "exact owner evidence",
+    "resources_released_ref": "actual hierarchy/device release evidence",
+    "no_successor_ref": "actual successor exclusion evidence"
+  },
+  "dispatch": "--allocation-id ID --revision N --step-id ID [--wait] [--supervisor-ref REF] -- owner argv: native exec under close-on-exec lock. Original step remains charged; duplicate step rejected. Success replaces the process with stdin/stdout/stderr unchanged; gate rejection emits diagnostics only on stderr and returns125, preserving framed protocol stdout. Both optional selectors belong only to dispatch; guard rejects them.",
+  "dispatch_wait": "Opt-in --wait passively follows native state changes without holding the decision lock or scheduling/admitting work. Caller supplies the observed allocation revision: only an untouched initial waiting1->admitted2 transition may cross revisions (including admission before the first read); an already-admitted/active continuation retains its exact revision. The capacity instance, full request, queue identity and remaining allocation state are pinned while waiting. Independent holds and temporarily unavailable/stale resource fit wait without effect; changed identity/revision, release, ineligible request or an existing step refuses. A single stderr line reports the waiting boundary; stdout stays untouched. Native SIGTERM/SIGINT before dispatch stop the wait without recording a step/runtime. The final native gates run under the existing begin/save/exec lock. No retry after a persisted dispatch, uncertain effect or exec failure; no release or new attempt is automatic.",
+  "dispatch_runtime_binding": "Opt-in --supervisor-ref REF names the caller's exact native supervisor (for example systemd:my-index.service). After successful begin_step, bind the actual current boot/PID/start and unified nonroot cgroup through the existing runtime validation, then persist the step and binding together before exec. Exec preserves that process/cgroup. Waiting alone never records a launched runtime; binding rejection before save does not persist a step. The caller still owns terminal outcome, reconciliation and resource release. Without this option the existing separately-owned binding behavior is unchanged.",
+  "guard": "--allocation-id ID --revision N --step-id ID --target-ref EXACT_PREPARED_TARGET --timeout-ms 1..10000 -- bounded-local-control argv: lock covers native effect. Output saved privately; nonzero/timeout are uncertain, never evidence of no effect. Not for computation, checkpoint drains or remote waits. The protected control process need not be in the compute aggregate; its domain owner preflights the immutable final target and binds/verifies the real child afterward. Native exec dispatch retains own-process placement enforcement.",
+  "serve": "Private Unix HTTP socket STATE/capacity.sock; GET passive inspect, POST same action JSON at /v1/capacity. Reconciles explicitly enrolled CPU aggregate values and bounded native resource observations every five seconds. No TCP listener, authentication transfer or implicit sudo. A separate bounded pressure cycle invokes only explicitly enrolled qualified domain controllers, outside the capacity decision lock. Native allocation release remains owner-produced. Reconciles only explicitly selected native io.max read/write byte limits; io.weight is not assumed effective.",
+  "mcp": "Newline JSON stdio MCP. help is served from embedded metadata without a resident; other operations forward opaquely over the selected resident socket. No local state fallback or automatic replay. Advertised schema refresh requires the new client executable; older clients may continue existing operations. Tool replies return the JSON envelope in MCP text content and set isError from its outcome.",
+  "effects": "Allocations/holds/revisions persist across restart. Hold prevents participating new/final dispatch; active/uncertain effects need domain reconciliation. Hold release does not start/resume work. No expiry releases resources. Observed demand is not permission to control external consumers. Policy reconfiguration preserves commitments/holds and invalidates changed resource observations; no implicit launch, resource release or immediate native control follows. pressure_tick and the resident request enrolled domain save/release and pressure-owned eligible continuation; exact owner IDs/revisions, actual native release and independent holds govern all transitions. io_policy is passive; apply_io_policy and resident reconciliation affect selected aggregate io.max only. Explicitly clear and verify native I/O limits before removing/rebinding their policy owner.",
+  "failures": "Invalid identity/revision, stale/missing observation, unknown resource, held or duplicate dispatch fail without a new launch. Reconcile original state before retry. A durable write followed by lost response may already have committed.",
+  "exit_codes": {
+    "0": "handler result ok / guard outcome must still be inspected",
+    "2": "invalid/unavailable/rejected operation",
+    "125": "dispatch gate rejected before exec"
+  },
+  "schema_version": "tool_usage.v1",
+  "status": "ok",
+  "purpose": "Coordinate capacity requests, guarded launches and maintenance holds for cooperating workloads on a Linux host.",
+  "entrypoint": "python scripts/tools/capacity.py",
+  "safe_first_calls": [
+    {
+      "label": "usage",
+      "cmd": "python scripts/tools/capacity.py usage --format json"
+    }
+  ],
+  "verbs": [
+    {
+      "name": "usage",
+      "side_effects": "none",
+      "summary": "Show complete offline invocation and effects."
+    },
+    {
+      "name": "request",
+      "side_effects": "Action-specific local state writes",
+      "summary": "Execute one structured capacity/maintenance operation."
+    },
+    {
+      "name": "serve",
+      "side_effects": "Local socket/service lifetime and bounded native observations",
+      "summary": "Run resident coordination until its native supervisor stops it."
+    },
+    {
+      "name": "mcp",
+      "side_effects": "Action-specific effects through selected resident only",
+      "summary": "Forward local stdio MCP operations to the current private resident."
+    },
+    {
+      "name": "dispatch",
+      "side_effects": "Executes enrolled owner program",
+      "summary": "Recheck exact allocation and atomically order exec against holds."
+    },
+    {
+      "name": "guard",
+      "side_effects": "Executes bounded local native control",
+      "summary": "Follow native control outcome while preserving uncertainty."
+    }
+  ],
+  "selectors": [
+    {
+      "name": "--state-root",
+      "required": true,
+      "summary": "Absolute private host capacity state; alternatively APEIROS_CAPACITY_STATE_ROOT."
+    }
+  ],
+  "output_formats": [
+    "text",
+    "json"
+  ],
+  "side_effects": {
+    "writes_repo": false,
+    "writes_paths": [
+      "Explicit state directory, native socket and bounded control output"
+    ],
+    "network_access": "none; native local control command effects remain caller-owned",
+    "modifies_remote": false,
+    "danger_level": "medium",
+    "supports_dry_run": false
+  },
+  "examples": [
+    {
+      "label": "Focused passive overview",
+      "cmd": "printf '%s\\n' '{\"action\":\"overview\"}' | python scripts/tools/capacity.py --state-root /absolute/private/state request"
+    }
+  ],
+  "docs": [
+    "docs/linux-capacity.md",
+    "repo_platform/capacity/openapi.json",
+    "repo_platform/capacity/request.schema.json"
+  ],
+  "errors": [
+    {
+      "code": "operation_rejected",
+      "meaning": "Inspect exact state and reconcile stale identity, missing observation or original uncertain effect before retry."
+    }
+  ],
+  "Policy_cpu_aggregates": {
+    "system_id": {
+      "cgroup": "exact host aggregate hierarchy",
+      "priority": "priority|normal",
+      "control_owner_ref": "sole effective writer"
+    }
+  },
+  "Policy_domain_controls": {
+    "system_id": {
+      "argv": [
+        "/absolute/qualified/domain-controller",
+        "capacity-control"
+      ],
+      "qualification_ref": "actual native save/release/continuation evidence",
+      "timeout_ms": "1..10000; short supervised acceptance, never drain wait",
+      "stable_recovery_ms": "actual selected stable recovery interval"
+    }
+  },
+  "cpu_accounting": "Native enrolled CPU demand means a qualified useful minimum under the native sharing policy; observed spare-cycle expansion remains visible without becoming an irreducible commitment. Other resources retain max(requested,observed), and unmanaged CPU use still counts.",
+  "Policy_io_limits": {
+    "system_id": {
+      "io_resource_id": {
+        "read_bytes_per_second": "positive integer or explicit null to clear",
+        "write_bytes_per_second": "positive integer or explicit null to clear",
+        "change_ref": "actual scoped adjustment",
+        "ending_condition": "actual ending/reconciliation condition"
+      }
+    }
+  },
+  "adoption": "Records an already-existing authorized native obligation atomically, without launching, resuming, admitting new work or fabricating a dispatch step. Requires enrolled CPU/RAM commitments, same host/boot/PID/start, whole populated accounting domain with readable counters, matching native aggregate policy and no parent/child overlap. Holds and pressure remain; reporting existing demand does not authorize the original launch or bypass a hold. Allocation.adoption retains exact original selectors, binding, evidence and registration time; no admission sequence or fairness turn is invented. Exact duplicate returns the original current disposition even after policy change/exit/release; changed input conflicts. Adopted runtime cannot be rebound to another incarnation. Release checks the original native runtime exit and whole-tree release, not fixture completion. Current guest reboot within one QEMU keeps that binding; replacement QEMU/host boot requires original disposition and distinct successor. Future unmanaged native starts remain external until their actual owner joins admission/dispatch. No live detach-as-release route.",
+  "adoption_readback": "adopted versus existing_original_outcome; allocation/adoption references; launched=false, resumed=false, new_work_authorized=false; matching_hold_ids; fresh_accounting_pending; current runtime_present. Until fresh exact-binding RAM/CPU samples arrive, temporary conservative double counting is explicit. RAM uses max(requested,observed); native CPU remains elastic with its requested commitment. Guest-internal demand is explanatory, never a duplicate physical allocation.",
+  "operation_details": {
+    "overview": {
+      "effect": "Passive bounded current activity/resource commitments, waiting reasons, attribution gaps and exact detail routes. No native probe, reservation or launch.",
+      "prerequisites": "Selected initialized state owner; original source required for page continuation.",
+      "outcome": "Owner snapshot with independent sample times, explicit page coverage and next parameters.",
+      "recovery": "Reacquire changed source deliberately; do not treat a newer page as one atomic historical snapshot."
+    },
+    "inspect": {
+      "effect": "Passive. With view, focused detail; without view, full state for clients that manage their own allocations. gpu_pressure derives physical pressure, eligible waiting demand and standing reservation shortfalls from one snapshot. A shortfall reports the uncovered bytes and unused floor by system even while the owner is idle.",
+      "prerequisites": "Exact allocation_id for allocation view; original source for pages.",
+      "outcome": "Captured owner state, never inferred workload progress, native limits or release.",
+      "recovery": "Use overview for routine inquiry. Preserve original identity across reconnects."
+    },
+    "help": {
+      "effect": "Offline metadata only; no resident/provider/native request.",
+      "prerequisites": "None.",
+      "outcome": "Action schema, semantic conditions and existing shared definitions.",
+      "recovery": "Omit operation to discover supported action names."
+    },
+    "observation": {
+      "effect": "Focused capacity observation and control. overview/inspect/follow/evidence/controls passive; diagnostic exposes cpu_policy/io_policy reads; control exposes hold/release_hold/reconfigure_policy effects.",
+      "prerequisites": "Explicit host, bounded limit/timeout; exact source/view/allocation cursor for follow; original source/revision for control.",
+      "outcome": "Focused view, separate resource sample times and source-bound pages; follow change/timeout/source replacement, not event-history completeness.",
+      "recovery": "Reuse original view/allocation/cursor. No selector renewal or automatic effect replay."
+    },
+    "assess": {
+      "effect": "Passive joint feasibility calculation.",
+      "prerequisites": "Exact request and enrolled resources; fresh host-bound observations for fit.",
+      "outcome": "Eligibility, limiting resources/commitments/holds; reserved=false, launched=false. Queue order is explained by inspecting an existing waiting allocation.",
+      "recovery": "Missing/stale observations are unknown availability, not zero demand."
+    },
+    "admit": {
+      "effect": "Persist an allocation or waiting request, never launch.",
+      "prerequisites": "Exact stable allocation/request identity, eligible policy and domain evidence.",
+      "outcome": "assessment/allocation; accepted reservation distinct from dispatch or completion.",
+      "recovery": "Identical ID/request reads original disposition; conflicting meaning is refused."
+    },
+    "admit_if_fit": {
+      "effect": "Atomically reserve only if the existing scheduler admits this exact request now. Never creates a new waiting request and never launches work.",
+      "prerequisites": "Exact stable allocation/request identity, current fit, domain eligibility, independent holds and normal scheduling order.",
+      "outcome": "assessment/allocation; unsuccessful new request has allocation=null and leaves state, queue and fairness turns unchanged. Existing identity retains its original disposition.",
+      "recovery": "Reinspect original identity after uncertain output; an identical retry cannot duplicate a successful admission. Optional residency may retry later without becoming pressure-producing queued demand."
+    },
+    "follow": {
+      "effect": "Passive legacy complete-state revision wait.",
+      "prerequisites": "Original after_source, after_revision and bounded timeout.",
+      "outcome": "Full state plus changed/source_changed/timed_out. Use observation follow for focused reads.",
+      "recovery": "Source replacement requires deliberate reacquisition; no historical completeness claim."
+    },
+    "cpu_policy": {
+      "effect": "Passive effective CPU aggregate policy readback.",
+      "prerequisites": "Enrolled native CPU aggregate identities.",
+      "outcome": "Per-group effective controls/matches/errors; no writes.",
+      "recovery": "Inspect exact failed aggregate through native owner; no implicit repair."
+    },
+    "io_policy": {
+      "effect": "Passive effective I/O policy readback.",
+      "prerequisites": "Enrolled native device/aggregate identities.",
+      "outcome": "Per-binding effective values/errors; no writes.",
+      "recovery": "Keep actual identity and diagnose native readback before any apply."
+    },
+    "hold": {
+      "effect": "Persist scoped future admission/final-dispatch exclusion; does not drain running work.",
+      "prerequisites": "Exact hold ID/owner/reason/scope. Direct expected_source/expected_state_revision condition against original observation; the observation action requires the original source and revision.",
+      "outcome": "Active/uncertain prior work remains charged; drained=false.",
+      "recovery": "Inspect original hold and earlier-dispatch evidence; never infer stopped from hold acceptance."
+    },
+    "release_hold": {
+      "effect": "Remove only exact owner hold; does not start/resume domain work.",
+      "prerequisites": "Original hold ID/owner and observed hold revision; direct expected_source protects owner identity. the observation action requires source.",
+      "outcome": "Other holds preserved; already authorized automation may become eligible.",
+      "recovery": "Reconcile original hold after lost response, never acquire fresh revision to replay stale intent."
+    },
+    "succeed_pressure_control": {
+      "effect": "Select one qualified callback for future pressure requests. Preserve every pending original callback via its original allocation and pressure request identity; rebind existing reservations without changing floor or physical guard.",
+      "prerequisites": "Exact host, instance, physical and scheduling revisions, expected current callback and complete reservation selection. Keep immutable original and successor binaries and custody. Pending requests require unchanged callback timeout and recovery interval.",
+      "outcome": "Physical policy advances; scheduling advances only when a reservation is rebound under the same native writer lock. No new workload work, pressure release or domain resume is requested.",
+      "recovery": "Read policy, scheduling, qualified reservation credit and pending requests before any retry. If interrupted between scheduling and physical commit, the existing conservative physical guard remains. Restore the original credit via configure_reservations with its original authority if needed."
+    },
+    "reconfigure_policy": {
+      "effect": "Conditional complete policy replacement; preserve allocations/holds; invalidate affected observations.",
+      "prerequisites": "Observed policy_revision, reviewed policy/change_ref and actual authority for any selected limits; direct expected_source protects owner identity. the observation action requires source.",
+      "outcome": "New policy revision, no launch/release; fresh affected observations required.",
+      "recovery": "Read policy_change_ref and original operation outcome after uncertainty before another change."
+    },
+    "release": {
+      "effect": "Retire exact allocation only after domain/native release; may admit eligible waiting references.",
+      "prerequisites": "Original allocation revision, owner/attempt-bound evidence and actual native tree exit.",
+      "outcome": "released=true; newly_admitted references are not launches.",
+      "recovery": "Unknown native outcome retains charge. Reconcile original allocation/binding before retry."
+    },
+    "initialize": {
+      "effect": "Create absent private owner state.",
+      "prerequisites": "Explicit physical host/machine and reviewed resource policy; no existing state.",
+      "outcome": "Initialized, launches=false.",
+      "recovery": "Inspect existing state rather than overwrite after uncertain creation."
+    },
+    "observe": {
+      "effect": "Persist owner-produced resource samples and schedule eligible references.",
+      "prerequisites": "Exact host/boot/time, allocation revisions and matching resource scope.",
+      "outcome": "Saved observation and newly_admitted IDs, never launches.",
+      "recovery": "Read original observations; omitted resources retain their old times."
+    },
+    "observe_native": {
+      "effect": "Sample enrolled native counters and persist observations; may admit waiting references.",
+      "prerequisites": "Qualified installed observer and exact initialized host state.",
+      "outcome": "Resource-specific observations/errors, no workload progress claim.",
+      "recovery": "Do not invoke old observer binaries that restore superseded accounting."
+    },
+    "schedule": {
+      "effect": "Apply existing admission ordering to waiting references; no launches.",
+      "prerequisites": "Current owner state, holds and valid resource samples.",
+      "outcome": "Newly admitted IDs only.",
+      "recovery": "Inspect existing allocation identities; never invent replacements."
+    },
+    "pressure_tick": {
+      "effect": "Advance enrolled qualified domain pressure save/release/eligible-resume workflows.",
+      "prerequisites": "Actual enrolled domain control/qualification and original operation identities.",
+      "outcome": "Owner-reported acceptance/progress/release remain separate; independent holds preserved.",
+      "recovery": "Inspect retained pressure view and original request IDs; never infer release from acknowledgement."
+    },
+    "apply_cpu_policy": {
+      "effect": "Apply enrolled native CPU controls, no new workload.",
+      "prerequisites": "Observed state revision and authority over selected aggregates.",
+      "outcome": "Per-group native result; partial changes possible.",
+      "recovery": "Inspect cpu_policy and exact original revision/intent; no blind replay."
+    },
+    "apply_io_policy": {
+      "effect": "Apply selected native io.max values.",
+      "prerequisites": "Observed policy_revision plus explicitly agreed useful purpose/scope of limits.",
+      "outcome": "Per-binding readback/errors; does not prove useful throughput.",
+      "recovery": "Read io_policy; clear/verify original limit before retiring/rebinding owner."
+    },
+    "bind_runtime": {
+      "effect": "Bind exact allocation to its actual native runtime.",
+      "prerequisites": "Original owner/revision and same-host/boot/PID/start/cgroup binding.",
+      "outcome": "Allocation binding, not release or workload completion.",
+      "recovery": "Reconcile original process incarnation before retry."
+    },
+    "adopt_runtime": {
+      "effect": "Record existing authorized native obligation; never launch/resume/authorize new work.",
+      "prerequisites": "Observed instance/policy revision, exact existing request/binding and evidence.",
+      "outcome": "adopted versus existing_original_outcome; preserves holds; fresh accounting may remain pending.",
+      "recovery": "Same ID/exact inputs recover original outcome; conflicting/replacement runtime requires its own owner disposition."
+    },
+    "reconcile_step": {
+      "effect": "Record original dispatch step outcome under exact allocation owner/revision.",
+      "prerequisites": "Original step identity and actual owner evidence.",
+      "outcome": "Applied/failed/uncertain step, allocation still charged.",
+      "recovery": "Do not repeat original native effect to determine its outcome."
+    },
+    "maintenance_prepare": {
+      "effect": "Persist exact maintenance operation and hold before draining.",
+      "prerequisites": "Exact operation/change/owner/scope/hold identities.",
+      "outcome": "Future dispatch excluded; active/uncertain work remains; drained=false.",
+      "recovery": "Inspect original maintenance/hold and domain drain evidence."
+    },
+    "maintenance_record": {
+      "effect": "Record one exact maintenance transition/evidence.",
+      "prerequisites": "Original owner/operation revision; actual native/domain outcome.",
+      "outcome": "Drained/installed/activated/verified/uncertain remain distinct; no operation replay.",
+      "recovery": "Read original maintenance record after lost reply; no blind reinstallation."
+    },
+    "maintenance_finish": {
+      "effect": "Close verified maintenance and release only its hold.",
+      "prerequisites": "Exact owner/revision and verified stage.",
+      "outcome": "Other holds preserved; no service or workload start.",
+      "recovery": "Inspect original operation/hold before further control."
+    },
+    "configure_scheduling": {
+      "effect": "Atomically replace native same-lock scheduling.json, preserving v1 state/request identity and live workers. Select exact-owner effective class/execution routes, explicit phase booking corrections and optional observed-running-CPU accounting.",
+      "prerequisites": "Actual owner/physical policy/scheduling revision, complete exact affected allocation observations and governing change/evidence. Native priority switch additionally requires qualified new final-dispatch clients and coverage of all affected native work.",
+      "outcome": "No launch, restart, hold release, process movement, new attempt or payload retry. Resident scheduling may later admit already-authorized work.",
+      "recovery": "Inspect scheduling revision and original allocation/request/runtime after an uncertain response. No automatic retry, rebase or unknown-state overwrite."
+    },
+    "request_demand_change": {
+      "effect": "Adjust a reusable phase envelope within the original active allocation; no launch, native cap, new attempt or release. Settled reductions retain observed-use floors; growth queues in existing aggregate fairness and is reserved before final dispatch.",
+      "prerequisites": "Exact source, owner, original request/revision/runtime, observed current booking and previous phase ID. Positive joint demand plus concrete current/next-phase qualification; current native boot. Decreases require fresh exact attribution.",
+      "outcome": "Pending or granted change, scheduling revision and unchanged original request. The legacy-readable booking contains every granted envelope, including growth beyond original forecast.",
+      "recovery": "Same change ID/input returns original disposition. Reconcile changed runtime/booking before a new request. Grant does not bypass later holds or final dispatch; inspect the original allocation after uncertainty."
+    },
+    "cancel_demand_change": {
+      "effect": "Cancel only the identified ungranted phase request; preserve actual current booking/runtime.",
+      "prerequisites": "Exact capacity source, allocation, change ID and owner.",
+      "outcome": "Cancelled pending change, no release or launch.",
+      "recovery": "Identical cancelled request is idempotent. Granted demand cannot be cancelled; owner must reach a valid phase and report its next envelope."
+    },
+    "configure_reservations": {
+      "effects": "Select revision-bound reservation credit under the sole Store lock. No allocation/request/hold/runtime/process change. Physical policy guard must already equal original margin plus all floors. Null removes credit while preserving guard.",
+      "prerequisites": "Explicit reservation authority, exact instance/policy/scheduling revision, enrolled systems and guarded native GPU identity. Upgrade resident/final dispatch owners before relying on credit; old clients remain conservative.",
+      "recovery": "Inspect exact scheduling revision and reservations after uncertain reply; never replay against a newer revision. Keep guard until explicit removal completes."
+    },
+    "configure_resource_preferences": {
+      "effects": "Select which enrolled system has precedence on each specified GPU when useful eligible demand competes. No new reservation, release, launch or native resource change.",
+      "prerequisites": "Current expected_source, physical policy and preference revisions, standing selection authority and exact enrolled native GPU identity. Legacy direct scheduling clients require supported succession before relying on their preference handling.",
+      "recovery": "Read preference_revision, resource_preferences and effective_resource_preferences in the policy view. Compare the original change reference before any retry."
+    }
+  },
+  "working_demand": "Owner-qualified current/next phase envelopes are reusable across many operations. Never use a momentary VRAM sample as a future peak. Pending growth remains on the original active allocation and must pass shared fairness, fresh joint fit, holds and final dispatch. Current demand is max(granted envelope, observed use) for RAM/GPU; original request/attempt/source remain unchanged. No arbitrary ceiling from an original estimate.",
+  "ended_native_boot": "Exact bound native process from a different positively known host boot contributes zero CPU/RAM/VRAM only when no current-boot step may have launched work. This is physical accounting, not allocation release, workload completion or recovery. Storage remains charged. Same-boot missing process or absent binding is not zero. Future dispatch still fits full effective demand.",
+  "GPUReservations": {
+    "policy_revision": "same observed physical policy revision",
+    "resources": {
+      "<native GPU resource id>": {
+        "resource_policy": "complete exact current ResourcePolicy including legacy guard",
+        "original_operational_margin": "physical margin before adding these reservations",
+        "system_floors": {
+          "<enrolled logical system>": "positive reserved quantity in resource units"
+        },
+        "selection_ref": "explicit scope, duration and authority"
+      }
+    }
+  },
+  "installation": "Install apeiros-capacity from repo_platform/capacity with Cargo. The Python entrypoint uses APEIROS_CAPACITY_EXECUTABLE when explicitly selected, otherwise the installed apeiros-capacity on PATH."
+}

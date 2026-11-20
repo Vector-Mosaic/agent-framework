@@ -25,6 +25,13 @@ fanout, concurrency, data preservation, recovery or security behavior can justif
 broader checking when their real uncertainty warrants it. Unknown impact calls
 for proportionate investigation, not automatically running everything.
 
+Consider formal verification when an important rule must hold across more inputs
+or sequences of events than tests can realistically cover. For example, if
+retrying an interrupted job must never commit its result twice, a model checker
+can explore orderings that are hard to reproduce in tests. Use the method when
+the additional assurance justifies the effort. State what was checked and which
+assumptions still need testing against the running implementation.
+
 One decisive check can suffice; many passes sharing the same blind spot or oracle
 may add little. A test should fail for the material defect, not merely mirror the
 implementation or satisfy a count. Mechanical validity can establish a parseable

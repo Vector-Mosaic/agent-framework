@@ -335,6 +335,20 @@ shell syntax. Remote qualification and scientific computation retain their own
 source, collection and interpretation requirements; successful output collection
 alone establishes no scientific conclusion.
 
+### Release interactive REPLs after use
+
+An idle interactive session can keep a checkout in use and delay a refresh.
+Keep a REPL open between calls while you need its live state. Once you finish
+using it, save any results needed later and release it through its native reset
+or close control, even if the wider task continues. Each agent or subagent
+releases its own sessions. If another chat owns a blocking session, leave the
+decision to release it with that owner.
+
+In Codex, the Node REPL and the computer-use REPL each have their own
+`js_reset`. If you used both, reset each in its owning chat as you finish with
+it. If a refresh is waiting and release is uncertain, check whether the
+session's kernel and workers exited.
+
 ## Make diagnosis possible before evidence disappears
 
 Locate useful status, logs, deployed identity and diagnostic access for the
