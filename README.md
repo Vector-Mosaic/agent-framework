@@ -1,4 +1,4 @@
-# Agent Framework
+# Apeiros Agent Harness
 
 An instruction framework and practical toolkit for sustained work with AI agents.
 
